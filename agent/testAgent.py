@@ -1,4 +1,5 @@
 import os
+import sandbox 
 from google import genai
 from google.genai import types
 from pathlib import Path
@@ -77,6 +78,15 @@ def fetch_doc_section(section_title: str) -> str:
 
     except Exception as e:
         return f"Error reading documentation file: {str(e)}"
+########################################
+def run_python(code: str) -> str:
+    """Runs Python code and returns the output.
+
+    Args:
+        code: The Python source code to execute.
+    """
+    return execute_code(code)
+
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +109,9 @@ def run_assistant():
     # Pass BOTH tools: your custom doc tool AND the Google code execution sandbox tool
     tools_list = [
         fetch_doc_section,
+         run_python,
         types.Tool(code_execution=types.ToolCodeExecution())
+        
     ]
     tool_config = types.ToolConfig(
         include_server_side_tool_invocations=True
