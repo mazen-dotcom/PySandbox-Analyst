@@ -1,5 +1,5 @@
 import os
-import sandbox 
+import agentSandbox
 from google import genai
 from google.genai import types
 from pathlib import Path
@@ -85,7 +85,7 @@ def run_python(code: str) -> str:
     Args:
         code: The Python source code to execute.
     """
-    return execute_code(code)
+    return agentSandbox.execute_code(code)
 
 
 
@@ -97,9 +97,10 @@ def run_assistant():
     #userdataset = open("train.csv", 'r')
     #parent_dir = Path.cwd().parent
     #print(parent_dir)
-    uploaded_file = client.files.upload(file=f"testdata/Wine dataset.csv")
+    #uploaded_file = client.files.upload(file=f"testdata/train.csv")
+    agentSandbox.upload_files_to_sandbox(['testdata/train.csv'])
     
-    f = open("sys_prompt_dash_v2.md", 'r')
+    f = open("sys_prompt_dash_v3.md", 'r')
     lst = f.readlines()
     lst = "".join(lst)
     #print(lst)
@@ -110,17 +111,19 @@ def run_assistant():
     tools_list = [
         fetch_doc_section,
          run_python,
-        types.Tool(code_execution=types.ToolCodeExecution())
+        #types.Tool(code_execution=types.ToolCodeExecution())
         
     ]
-    tool_config = types.ToolConfig(
-        include_server_side_tool_invocations=True
-    )
+    #tool_config = types.ToolConfig(
+        #include_server_side_tool_invocations=True
+    #)
 
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
         tools=tools_list,
-        tool_config=tool_config
+        thinking_config=types.ThinkingConfig(include_thoughts=True)
+
+        #tool_config=tool_config
     )
 
     user_query = (
@@ -131,7 +134,7 @@ def run_assistant():
 
     response = client.models.generate_content(
         model="gemini-3.5-flash-lite",
-        contents=[uploaded_file ,user_query],
+        contents=[user_query],
         #config=types.GenerateContentConfig(
         #    system_instruction=system_instruction,
         #    tools=tools_list,    
@@ -153,6 +156,10 @@ def run_assistant():
             if part.code_execution_result:
                 print("\n[Sandbox Output]:")
                 print(part.code_execution_result.output)
+
+            if part.thought:
+                print("Thought Process:")
+                print(part.text)
                 
 
 if __name__ == "__main__":
