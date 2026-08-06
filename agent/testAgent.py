@@ -7,7 +7,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 1. Configuration & Section Map Definition
 # ---------------------------------------------------------------------------
-DOCS_FILE_PATH = "plotly-docs.md"
+DOCS_FILE_PATH = "Apexchart-doc.md"
 
 SECTION_MAP = {
     "Overview and Introduction": {"start": 1, "end": 8},
