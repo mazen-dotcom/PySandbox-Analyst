@@ -1,0 +1,123 @@
+classDiagram
+direction LR
+
+class ProductWindow {
+  <<view>>
+  +displayProductList() void
+  +displayProductForm() void
+  +submitProduct(Product product) void
+}
+
+class ShortageReviewWindow {
+  <<view>>
+  +displayShortageReport(ShortageReport report) void
+  +submitShortageReview(ShortageReport report) void
+}
+
+class ProductHandler {
+  <<controller>>
+  +searchProduct(String productCode) Product
+  +registerProduct(Product product) void
+  +updateProduct(Product product) void
+  +submitMasterDataChange(MasterDataChange change) void
+}
+
+class InventoryHandler {
+  <<controller>>
+  +retrieveStockLevels(int productId) Inventory[]
+  +generateShortageReports() ShortageReport[]
+  +reviewShortage(ShortageReport report) void
+}
+
+class ProductDA {
+  <<dataAccess>>
+  +findById(int productId) Product
+  +findByCode(String productCode) Product
+  +save(Product product) void
+}
+
+class ProductDataSpecialist {
+  +searchProduct(String productCode) Product
+  +viewProduct(Product product) Product
+  +registerProduct(Product product) void
+  +updateProduct(Product product) void
+  +submitMasterDataChange(MasterDataChange change) void
+}
+
+class SupplyChainManager {
+  +reviewShortageReport(ShortageReport report) void
+  +createPurchaseRequest() PurchaseRequest
+  +submitPurchaseRequest(PurchaseRequest request) void
+}
+
+class Product {
+  <<entity>>
+  -int productId
+  -String productCode
+  -String productName
+  -String description
+  -String technicalSpecifications
+  -String materialRequirements
+  -String qualityDetails
+  -int reorderLevel
+  -String unitOfMeasure
+  -String status
+  +createProduct() void
+  +updateProduct() void
+  +searchProduct(String productCode) Product
+  +viewProduct() Product
+  +validateProductData() Boolean
+}
+
+class Inventory {
+  <<entity>>
+  -int inventoryId
+  -int onHandQuantity
+  -int reservedQuantity
+  -int availableQuantity
+  -DateTime lastUpdated
+  +retrieveStock() void
+  +calculateAvailableStock() int
+  +updateInventory() void
+}
+
+class ShortageReport {
+  <<entity>>
+  -int reportId
+  -DateTime reportDate
+  -int requiredQuantity
+  -int availableQuantity
+  -int shortageQuantity
+  -String status
+  +calculateShortage() int
+  +generateShortageReport() void
+  +reviewShortage() void
+}
+
+class MasterDataChange {
+  <<entity>>
+  -int changeId
+  -String entityType
+  -String changedFields
+  -String approvalStatus
+  -DateTime changedAt
+  +approveChange() void
+  +rejectChange() void
+}
+
+ProductWindow --> ProductHandler : calls
+ShortageReviewWindow --> InventoryHandler : calls
+ProductDataSpecialist --> ProductWindow : uses
+SupplyChainManager --> ShortageReviewWindow : uses
+ProductDataSpecialist --> Product : manages
+ProductDataSpecialist --> MasterDataChange : submits
+SupplyChainManager --> ShortageReport : reviews
+Product --> Inventory : has stock records
+Product --> ShortageReport : triggers
+ProductHandler --> Product : uses
+ProductHandler --> MasterDataChange : uses
+ProductHandler --> ProductDA : accesses
+ProductDA --> Product : maps
+InventoryHandler --> Inventory : uses
+InventoryHandler --> ShortageReport : generates
+InventoryHandler --> ProductDA : accesses

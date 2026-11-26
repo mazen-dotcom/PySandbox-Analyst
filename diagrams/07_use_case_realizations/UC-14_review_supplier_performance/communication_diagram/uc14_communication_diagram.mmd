@@ -1,0 +1,44 @@
+flowchart TB
+    APP(["Authorized Approver<br/>«actor»"])
+    SSS(["Strategic Sourcing Specialist<br/>«actor»"])
+    LEG(["Legal Department<br/>«actor»"])
+    PRW["PerformanceReviewWindow<br/>«view» (View Layer)"]
+    RH["ReviewHandler<br/>«controller» (Domain Layer)"]
+    SPR["SupplierPerformanceReview<br/>«entity» (Domain Layer)"]
+    SUP["Supplier<br/>«entity» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    AL["AuditLog<br/>«entity» (Domain Layer)"]
+    SPRDA["SupplierPerformanceReviewDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    APP -- "1: openPerformanceReview(supplierId)" --> PRW
+    PRW -- "2: getSupplierPerformanceData(supplierId)" --> RH
+    RH -- "3: findVerifiedPerformanceData(supplierId)" --> SPRDA
+    SPRDA -- "4: SELECT verified performance data" --> DB
+    SSS -- "5: recordScores(scores, evidence)" --> PRW
+    PRW -- "6: submitScores(scores, evidence)" --> RH
+    RH -- "7: getScoringMethod()" --> PP
+    RH -- "8: new SupplierPerformanceReview(supplierId, scores)" --> SPR
+    SPR -- "9: checkPreparerNotApprover(approverId)" --> SPR
+    LEG -- "10: confirmComplianceStatus(supplierId, status)" --> PRW
+    PRW -- "11: recordComplianceStatus(supplierId, status)" --> RH
+    RH -- "12: setComplianceStatus(status)" --> SUP
+    APP -- "13: submitReviewDecision(decision)" --> PRW
+    PRW -- "14: recordReviewDecision(decision)" --> RH
+    RH -- "15: deferDecision(reason)" --> SPR
+    RH -- "16: setResult(decision, reviewDate, owner)" --> SPR
+    RH -- "17: save(review)" --> SPRDA
+    SPRDA -- "18: INSERT review result and actions" --> DB
+    RH -- "19: updateEligibility(decision)" --> SUP
+    RH -- "20: record(override, reason, approver)" --> AL
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class PRW view
+    class RH ctrl
+    class SPR,SUP,PP,AL ent
+    class SPRDA da
+    class DB db

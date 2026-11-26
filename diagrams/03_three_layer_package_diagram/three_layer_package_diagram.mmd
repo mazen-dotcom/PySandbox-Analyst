@@ -1,0 +1,192 @@
+flowchart TB
+    subgraph VIEW["«package» View Layer"]
+        direction LR
+        LOGIN["LoginWindow «view»"]
+        PROD["ProductWindow «view»"]
+        SUPW["SupplierWindow «view»"]
+        SHORT["ShortageReviewWindow «view»"]
+        PRW["PurchaseRequestWindow «view»"]
+        APPW["ApprovalWindow «view»"]
+        RFQW["RFQWindow «view»"]
+        QUOTW["QuotationWindow «view»"]
+        EVALW["EvaluationWindow «view»"]
+        POW["PurchaseOrderWindow «view»"]
+        TRACKW["OrderTrackingWindow «view»"]
+        RECW["GoodsReceiptWindow «view»"]
+        PAYW["PaymentNotificationWindow «view»"]
+        PERFW["PerformanceReviewWindow «view»"]
+        KPIW["KPIWindow «view»"]
+    end
+
+    subgraph DOMAIN["«package» Domain Layer"]
+        direction LR
+        subgraph CTRL["Controllers"]
+            direction LR
+            UH["UserHandler «controller»"]
+            PH["ProductHandler «controller»"]
+            IH["InventoryHandler «controller»"]
+            SH["SupplierHandler «controller»"]
+            PRH["PurchaseRequestHandler «controller»"]
+            SRH["SourcingHandler «controller»"]
+            OH["OrderHandler «controller»"]
+            DH["DeliveryHandler «controller»"]
+            PYH["PaymentHandler «controller»"]
+            RH["ReviewHandler «controller»"]
+        end
+        subgraph ENT["Entities"]
+            direction LR
+            subgraph ENT_A["Access and Product"]
+                direction TB
+                USER_E["User «entity»"]
+                ROLE_E["Role «entity»"]
+                PERM_E["Permission «entity»"]
+                AUDIT_E["AuditLog «entity»"]
+                PROD_E["Product «entity»"]
+                INV_E["Inventory «entity»"]
+                SHORT_E["ShortageReport «entity»"]
+                MDC_E["MasterDataChange «entity»"]
+            end
+            subgraph ENT_B["Supplier and Sourcing"]
+                direction TB
+                SUP_E["Supplier «entity»"]
+                SDOC_E["SupplierDocument «entity»"]
+                SPR_E["SupplierPerformanceReview «entity»"]
+                PR_E["PurchaseRequest «entity»"]
+                PRI_E["PurchaseRequestItem «entity»"]
+                APPR_E["RequestApproval «entity»"]
+                BUDG_E["BudgetCheck «entity»"]
+                POL_E["ProcurementPolicy «entity»"]
+            end
+            subgraph ENT_C["RFQ and Quotation"]
+                direction TB
+                RFQ_E["RFQ «entity»"]
+                RFQI_E["RFQItem «entity»"]
+                DISP_E["RFQDispatch «entity»"]
+                QUOT_E["Quotation «entity»"]
+                QDOC_E["QuotationDocument «entity»"]
+                QEVAL_E["QuotationEvaluation «entity»"]
+            end
+            subgraph ENT_D["Order and Delivery"]
+                direction TB
+                PO_E["PurchaseOrder «entity»"]
+                POI_E["PurchaseOrderItem «entity»"]
+                CON_E["Contract «entity»"]
+                DCONF_E["DeliveryConfirmation «entity»"]
+                SHIP_E["Shipment «entity»"]
+                GR_E["GoodsReceipt «entity»"]
+                DISC_E["DeliveryDiscrepancy «entity»"]
+            end
+            subgraph ENT_E["Payment and KPI"]
+                direction TB
+                PN_E["PaymentNotification «entity»"]
+                PM_E["PaymentMatch «entity»"]
+                INVD_E["InvoiceDocument «entity»"]
+                KPI_E["KPIRecord «entity»"]
+            end
+        end
+    end
+
+    subgraph DAL["«package» Data Access Layer"]
+        direction LR
+        UDA["UserDA «dataAccess»"]
+        PDA["ProductDA «dataAccess»"]
+        SDA["SupplierDA «dataAccess»"]
+        PRDA["PurchaseRequestDA «dataAccess»"]
+        RFQDA["RFQDA «dataAccess»"]
+        QDA["QuotationDA «dataAccess»"]
+        PODA["PurchaseOrderDA «dataAccess»"]
+        DDA["DeliveryDA «dataAccess»"]
+        PNDA["PaymentNotificationDA «dataAccess»"]
+        KDA["KPIRecordDA «dataAccess»"]
+    end
+
+    DB[("DBMS «database»")]
+
+    %% View to Domain (navigation)
+    LOGIN --> UH
+    PROD --> PH
+    SHORT --> IH
+    SUPW --> SH
+    PRW --> PRH
+    APPW --> PRH
+    RFQW --> SRH
+    QUOTW --> SRH
+    EVALW --> SRH
+    POW --> OH
+    TRACKW --> DH
+    RECW --> DH
+    PAYW --> PYH
+    PERFW --> RH
+    KPIW --> RH
+
+    %% Controllers use entities
+    UH --> USER_E
+    UH --> ROLE_E
+    UH --> PERM_E
+    UH --> AUDIT_E
+    PH --> PROD_E
+    PH --> MDC_E
+    IH --> INV_E
+    IH --> SHORT_E
+    SH --> SUP_E
+    SH --> SDOC_E
+    PRH --> PR_E
+    PRH --> PRI_E
+    PRH --> APPR_E
+    PRH --> BUDG_E
+    PRH --> POL_E
+    SRH --> RFQ_E
+    SRH --> RFQI_E
+    SRH --> DISP_E
+    SRH --> QUOT_E
+    SRH --> QDOC_E
+    SRH --> QEVAL_E
+    OH --> PO_E
+    OH --> POI_E
+    OH --> CON_E
+    OH --> DCONF_E
+    DH --> SHIP_E
+    DH --> GR_E
+    DH --> DISC_E
+    PYH --> PN_E
+    PYH --> PM_E
+    PYH --> INVD_E
+    RH --> SPR_E
+    RH --> KPI_E
+
+    %% Domain to Data Access
+    UH --> UDA
+    PH --> PDA
+    IH --> PDA
+    SH --> SDA
+    PRH --> PRDA
+    SRH --> RFQDA
+    SRH --> QDA
+    OH --> PODA
+    DH --> DDA
+    PYH --> PNDA
+    RH --> SDA
+    RH --> KDA
+
+    %% Data Access to database
+    UDA --> DB
+    PDA --> DB
+    SDA --> DB
+    PRDA --> DB
+    RFQDA --> DB
+    QDA --> DB
+    PODA --> DB
+    DDA --> DB
+    PNDA --> DB
+    KDA --> DB
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class LOGIN,PROD,SUPW,SHORT,PRW,APPW,RFQW,QUOTW,EVALW,POW,TRACKW,RECW,PAYW,PERFW,KPIW view
+    class UH,PH,IH,SH,PRH,SRH,OH,DH,PYH,RH ctrl
+    class USER_E,ROLE_E,PERM_E,AUDIT_E,PROD_E,INV_E,SHORT_E,MDC_E,SUP_E,SDOC_E,SPR_E,PR_E,PRI_E,APPR_E,BUDG_E,POL_E,RFQ_E,RFQI_E,DISP_E,QUOT_E,QDOC_E,QEVAL_E,PO_E,POI_E,CON_E,DCONF_E,SHIP_E,GR_E,DISC_E,PN_E,PM_E,INVD_E,KPI_E ent
+    class UDA,PDA,SDA,PRDA,RFQDA,QDA,PODA,DDA,PNDA,KDA da
+    class DB db

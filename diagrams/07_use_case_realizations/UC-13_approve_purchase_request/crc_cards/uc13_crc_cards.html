@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-13 Approve Purchase Request</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-13 Approve Purchase Request</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">ApprovalWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display pending requests, estimated value, justification and approval history</td><td>PurchaseRequestHandler</td></tr>
+      <tr><td>Collect the approver decision and rationale</td><td>PurchaseRequestHandler</td></tr>
+      <tr><td>Display routing, return or Approved for Sourcing status</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">PurchaseRequestHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Approve Purchase Request use case</td><td>ApprovalWindow</td></tr>
+      <tr><td>Retrieve pending requests and request details</td><td>PurchaseRequestDA</td></tr>
+      <tr><td>Verify the approver is not the requester</td><td>RequestApproval</td></tr>
+      <tr><td>Look up the required authority level for the request value</td><td>ProcurementPolicy</td></tr>
+      <tr><td>Record the decision, rationale and timestamp</td><td>RequestApproval</td></tr>
+      <tr><td>Set status to Approved for Sourcing or Returned</td><td>PurchaseRequest</td></tr>
+      <tr><td>Save the updated request</td><td>PurchaseRequestDA</td></tr>
+      <tr><td>Log the decision in the audit trail</td><td>AuditLog</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">PurchaseRequest «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold status: Pending Approval, Approved for Sourcing or Returned</td><td>RequestApproval</td></tr>
+      <tr><td>Hold estimated value and justification</td><td>PurchaseRequestItem</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">RequestApproval «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold approver, decision, rationale and timestamp</td><td>PurchaseRequest</td></tr>
+      <tr><td>Refuse approval by the requester</td><td>User</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">BudgetCheck «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the budget decision for the requested amount</td><td>PurchaseRequest</td></tr>
+      <tr><td>Report insufficient budget to the handler</td><td>PurchaseRequestHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">ProcurementPolicy «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Return the required authority level for the request value and type</td><td>PurchaseRequestHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">AuditLog «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Record decision, user and timestamp</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">PurchaseRequestDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query requests with status Pending Approval</td><td>Database</td></tr>
+      <tr><td>Save the decision status and approval record</td><td>Database</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-13</th></tr>
+    <tr><td>PurchaseRequestItem «entity»</td><td>Line items reviewed by the approver (UC-05)</td></tr>
+    <tr><td>User «entity»</td><td>Identifies the approver and the requester</td></tr>
+    <tr><td>Finance Department</td><td>Records the budget decision before sourcing (actor)</td></tr>
+    <tr><td>Database</td><td>Stores requests, approvals and audit entries</td></tr>
+  </table>
+</div>
+</body>
+</html>

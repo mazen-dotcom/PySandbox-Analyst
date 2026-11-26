@@ -1,0 +1,39 @@
+flowchart TB
+    PDS(["Product Data Specialist<br/>«actor»"])
+    MFG(["Manufacturing Department<br/>«actor»"])
+    PW["ProductWindow<br/>«view» (View Layer)"]
+    PH["ProductHandler<br/>«controller» (Domain Layer)"]
+    PRD["Product<br/>«entity» (Domain Layer)"]
+    MDC["MasterDataChange<br/>«entity» (Domain Layer)"]
+    PDA["ProductDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    PDS -- "1: openProductManagement()" --> PW
+    PW -- "2: loadProductList()" --> PH
+    PH -- "3: findProducts()" --> PDA
+    PDA -- "4: SELECT products" --> DB
+    PDS -- "5: searchProduct(productCode)" --> PW
+    PW -- "6: searchProduct(productCode)" --> PH
+    PH -- "7: findByCode(productCode)" --> PDA
+    PDA -- "8: SELECT product by code" --> DB
+    MFG -- "9: confirm specifications" --> PDS
+    PDS -- "10: enterProductData(details)" --> PW
+    PW -- "11: saveProduct(details)" --> PH
+    PH -- "12: validateProductData()" --> PRD
+    PH -- "13: checkDuplicateCode(productCode)" --> PDA
+    PDA -- "14: SELECT count by product code" --> DB
+    PH -- "15: new MasterDataChange(oldValues, newValues)" --> MDC
+    PH -- "16: approveChange(independent reviewer)" --> MDC
+    PH -- "17: saveProduct(product)" --> PDA
+    PDA -- "18: INSERT or UPDATE product" --> DB
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class PW view
+    class PH ctrl
+    class PRD,MDC ent
+    class PDA da
+    class DB db

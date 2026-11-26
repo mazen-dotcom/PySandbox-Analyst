@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-12 Notify Finance for Payment Processing</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-12 Notify Finance for Payment Processing</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">PaymentNotificationWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display order and supplier details</td><td>PaymentHandler</td></tr>
+      <tr><td>Collect the goods receipt confirmation, invoice and supporting documents</td><td>PaymentHandler</td></tr>
+      <tr><td>Display the match result, hold reason or submission status</td><td></td></tr>
+      <tr><td>Display the Finance payment status when updated</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">PaymentHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Notify Finance for Payment Processing use case</td><td>PaymentNotificationWindow</td></tr>
+      <tr><td>Retrieve the purchase order and supplier details</td><td>PurchaseOrderDA</td></tr>
+      <tr><td>Check the invoice supplier and number for duplicates</td><td>PaymentNotificationDA</td></tr>
+      <tr><td>Create an InvoiceDocument from the submitted details</td><td>InvoiceDocument</td></tr>
+      <tr><td>Run the three-way match of order, receipt and invoice</td><td>PaymentMatch</td></tr>
+      <tr><td>Create a PaymentNotification only when the match passes</td><td>PaymentNotification</td></tr>
+      <tr><td>Record the Finance decision and payment status</td><td>PaymentNotificationDA</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">PaymentMatch «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Compare purchase order, goods receipt and invoice by quantity and price</td><td>InvoiceDocument, GoodsReceipt</td></tr>
+      <tr><td>Apply approved tolerances and the milestone validation result</td><td>ProcurementPolicy</td></tr>
+      <tr><td>Report pass, variance or hold</td><td>PaymentHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">InvoiceDocument «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold supplier, invoice number, amounts and documents</td><td>Supplier</td></tr>
+      <tr><td>Report whether the invoice is missing or a duplicate</td><td>PaymentMatch</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">PaymentNotification «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the link to the order, match result and status: Submitted, On Hold, Authorized</td><td>PurchaseOrder</td></tr>
+      <tr><td>Hold the hold reason and variance details</td><td>DeliveryDiscrepancy</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">PurchaseOrderDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query the purchase order and supplier details</td><td>Database</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">PaymentNotificationDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query invoices by supplier and number to detect duplicates</td><td>Database</td></tr>
+      <tr><td>Insert and update payment notifications</td><td>Database</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-12</th></tr>
+    <tr><td>GoodsReceipt «entity»</td><td>Holds the receipt confirmed by the Warehouse Department (UC-11)</td></tr>
+    <tr><td>DeliveryDiscrepancy «entity»</td><td>Open discrepancy places the notification on hold (UC-11)</td></tr>
+    <tr><td>ProcurementPolicy «entity»</td><td>Holds the approved match tolerances</td></tr>
+    <tr><td>Supplier «entity»</td><td>Supplies the invoiced supplier identity</td></tr>
+    <tr><td>Database</td><td>Stores orders, invoices and notifications</td></tr>
+  </table>
+</div>
+</body>
+</html>

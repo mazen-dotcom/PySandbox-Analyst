@@ -1,0 +1,188 @@
+classDiagram
+direction LR
+
+class LoginWindow {
+  <<view>>
+  +displayLoginForm() void
+  +submitCredentials(String username, String password) void
+}
+class PurchaseRequestWindow {
+  <<view>>
+  +displayRequestForm() void
+  +submitRequest(PurchaseRequest request) void
+  +displayApprovalStatus() void
+}
+class RFQWindow {
+  <<view>>
+  +displayRFQForm() void
+  +sendRFQ(RFQ rfq) void
+}
+class EvaluationWindow {
+  <<view>>
+  +displayQuotations(RFQ rfq) void
+  +submitAwardForApproval(QuotationEvaluation evaluation) void
+}
+class PurchaseOrderWindow {
+  <<view>>
+  +displayOrderForm() void
+  +dispatchOrder(PurchaseOrder order) void
+}
+class GoodsReceiptWindow {
+  <<view>>
+  +displayReceiptForm() void
+  +recordReceipt(GoodsReceipt receipt) void
+}
+class PaymentNotificationWindow {
+  <<view>>
+  +displayInvoiceForm() void
+  +submitPaymentNotification(PaymentNotification notification) void
+}
+
+class PurchaseRequestHandler {
+  <<controller>>
+  +createRequest(PurchaseRequest request) PurchaseRequest
+  +submitRequest(PurchaseRequest request) void
+  +checkApprovalStatus(int requestId) String
+}
+class SourcingHandler {
+  <<controller>>
+  +createRFQ(PurchaseRequest request) RFQ
+  +sendRFQ(RFQ rfq) void
+  +registerQuotation(Quotation quotation) void
+  +evaluateQuotations(RFQ rfq) QuotationEvaluation
+}
+class OrderHandler {
+  <<controller>>
+  +createPurchaseOrder(Quotation quotation) PurchaseOrder
+  +dispatchPurchaseOrder(PurchaseOrder order) void
+}
+class DeliveryHandler {
+  <<controller>>
+  +recordGoodsReceipt(GoodsReceipt receipt) void
+  +raiseDeliveryDiscrepancy(GoodsReceipt receipt) void
+}
+class PaymentHandler {
+  <<controller>>
+  +submitPaymentNotification(PurchaseOrder order, InvoiceDocument invoice) PaymentNotification
+  +performThreeWayMatch(PaymentNotification notification) Boolean
+}
+
+class PurchaseRequest {
+  <<entity>>
+  -int requestId
+  -String requestReference
+  -Date requestDate
+  -String justification
+  -String priority
+  -Decimal estimatedTotal
+  -String approvalStatus
+  +validateRequest() Boolean
+  +isApprovedForSourcing() Boolean
+}
+class RFQ {
+  <<entity>>
+  -int rfqId
+  -String rfqReference
+  -DateTime quotationDeadline
+  -String sourcingMethod
+  -int requiredQuoteCount
+  -String status
+  +validateRFQ() Boolean
+  +updateRFQStatus(String status) void
+}
+class Quotation {
+  <<entity>>
+  -int quotationId
+  -String quotationReference
+  -Decimal totalPrice
+  -String deliveryTerms
+  -String status
+  +validateQuotation() Boolean
+  +calculateTotalPrice() Decimal
+}
+class PurchaseOrder {
+  <<entity>>
+  -int orderId
+  -String orderReference
+  -Date orderDate
+  -String status
+  -Decimal totalAmount
+  -String approvalStatus
+  +validateOrder() Boolean
+  +updateOrderStatus(String status) void
+}
+class GoodsReceipt {
+  <<entity>>
+  -int receiptId
+  -Date receiptDate
+  -int receivedQuantity
+  -int discrepancyQuantity
+  -String inspectionResult
+  +recordGoodsReceipt() void
+  +confirmReceivedQuantity() void
+}
+class PaymentNotification {
+  <<entity>>
+  -int notificationId
+  -String invoiceNumber
+  -Decimal invoiceAmount
+  -String matchStatus
+  -String paymentStatus
+  +submitPaymentNotification() void
+  +placeOnHold(String reason) void
+  +releaseForPayment() void
+}
+
+class PurchaseRequestDA {
+  <<dataAccess>>
+  +findById(int requestId) PurchaseRequest
+  +save(PurchaseRequest request) void
+  +updateStatus(int requestId, String status) void
+}
+class RFQDA {
+  <<dataAccess>>
+  +findById(int rfqId) RFQ
+  +save(RFQ rfq) void
+}
+class PurchaseOrderDA {
+  <<dataAccess>>
+  +findById(int orderId) PurchaseOrder
+  +save(PurchaseOrder order) void
+  +updateStatus(int orderId, String status) void
+}
+class GoodsReceiptDA {
+  <<dataAccess>>
+  +findByOrder(int orderId) GoodsReceipt[]
+  +save(GoodsReceipt receipt) void
+}
+class PaymentNotificationDA {
+  <<dataAccess>>
+  +findByOrder(int orderId) PaymentNotification[]
+  +save(PaymentNotification notification) void
+}
+
+PurchaseRequestWindow --> PurchaseRequestHandler : calls
+RFQWindow --> SourcingHandler : calls
+EvaluationWindow --> SourcingHandler : calls
+PurchaseOrderWindow --> OrderHandler : calls
+GoodsReceiptWindow --> DeliveryHandler : calls
+PaymentNotificationWindow --> PaymentHandler : calls
+
+PurchaseRequestHandler --> PurchaseRequest : uses
+SourcingHandler --> RFQ : uses
+SourcingHandler --> Quotation : uses
+OrderHandler --> PurchaseOrder : uses
+DeliveryHandler --> GoodsReceipt : uses
+PaymentHandler --> PaymentNotification : uses
+
+PurchaseRequestHandler --> PurchaseRequestDA : accesses
+SourcingHandler --> RFQDA : accesses
+OrderHandler --> PurchaseOrderDA : accesses
+DeliveryHandler --> GoodsReceiptDA : accesses
+PaymentHandler --> PaymentNotificationDA : accesses
+
+PurchaseRequestDA --> PurchaseRequest : maps
+RFQDA --> RFQ : maps
+PurchaseOrderDA --> PurchaseOrder : maps
+GoodsReceiptDA --> GoodsReceipt : maps
+PaymentNotificationDA --> PaymentNotification : maps

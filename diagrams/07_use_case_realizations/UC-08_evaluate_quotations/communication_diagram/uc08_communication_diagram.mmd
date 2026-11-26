@@ -1,0 +1,43 @@
+flowchart TB
+    SSS(["Strategic Sourcing Specialist<br/>«actor»"])
+    MFG(["Manufacturing Department<br/>«actor»"])
+    FIN(["Finance Department<br/>«actor»"])
+    APR(["Authorized Approver<br/>«actor»"])
+    EW["EvaluationWindow<br/>«view» (View Layer)"]
+    SH["SourcingHandler<br/>«controller» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    QE["QuotationEvaluation<br/>«entity» (Domain Layer)"]
+    QDA["QuotationDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    SSS -- "1: openEvaluateQuotations(rfq)" --> EW
+    EW -- "2: loadQuotations(rfq)" --> SH
+    SH -- "3: findQuotationsByRFQ(rfq)" --> QDA
+    QDA -- "4: SELECT quotations for RFQ" --> DB
+    SH -- "5: getApprovedCriteriaAndWeightings()" --> PP
+    SSS -- "6: enterScores(technical, commercial)" --> EW
+    SSS -- "7: declareConflict(evaluator)" --> EW
+    EW -- "8: recordEvaluation(scores)" --> SH
+    SH -- "9: recordEvaluation()" --> QE
+    SH -- "10: evaluateTechnicalCriteria()" --> QE
+    SH -- "11: evaluateCommercialCriteria()" --> QE
+    SH -- "12: compareQuotations()" --> QE
+    SSS -- "13: selectSupplier(quotation, justification)" --> EW
+    EW -- "14: selectSupplier(quotation, justification)" --> SH
+    SH -- "15: submitAwardForApproval()" --> QE
+    SH -- "16: getAuthorityLevel(awardValue)" --> PP
+    APR -- "17: approveAward(decision, rationale)" --> EW
+    EW -- "18: recordAwardDecision(decision)" --> SH
+    SH -- "19: saveEvaluation(evaluation)" --> QDA
+    QDA -- "20: INSERT evaluation results and award status" --> DB
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class EW view
+    class SH ctrl
+    class PP,QE ent
+    class QDA da
+    class DB db

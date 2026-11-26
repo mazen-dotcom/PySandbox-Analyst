@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-07 Register Quotations</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-07 Register Quotations</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">QuotationWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display issued RFQs and their response statuses</td><td>SourcingHandler</td></tr>
+      <tr><td>Collect prices, quantities, validity period, delivery terms, and commercial details</td><td></td></tr>
+      <tr><td>Upload the supplier quotation and supporting documents</td><td>SourcingHandler</td></tr>
+      <tr><td>Display missing-detail and invalid-RFQ messages, and the registration confirmation</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">SourcingHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Register Quotations use case</td><td>QuotationWindow</td></tr>
+      <tr><td>Load issued RFQs and check that the RFQ is valid for the quotation</td><td>RFQDA, RFQ</td></tr>
+      <tr><td>Check for an existing quotation from the same supplier for the RFQ</td><td>QuotationDA</td></tr>
+      <tr><td>Create and validate the quotation and its documents</td><td>Quotation, QuotationDocument</td></tr>
+      <tr><td>Save the quotation and update the RFQ response status</td><td>QuotationDA, RFQ</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">RFQ «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Validate that the RFQ is issued and can receive quotations</td><td></td></tr>
+      <tr><td>Hold the RFQ response status and update it when a quotation is received</td><td>Quotation</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Quotation «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold quotation reference, submission date, total price, validity, and delivery terms</td><td>RFQ, Supplier</td></tr>
+      <tr><td>Validate mandatory quotation details</td><td></td></tr>
+      <tr><td>Identify whether a new submission is a permitted revision</td><td>QuotationDocument</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">QuotationDocument «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the file name, file path, and upload date of each supporting document</td><td>Quotation</td></tr>
+      <tr><td>Validate that the document is readable and linked to the quotation</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">QuotationDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Find an existing quotation by RFQ and supplier</td><td>Database</td></tr>
+      <tr><td>Insert the quotation and its documents, linked to the RFQ and supplier</td><td>Database</td></tr>
+      <tr><td>Return the saved quotation to the handler</td><td>SourcingHandler</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-07</th></tr>
+    <tr><td>RFQDA «dataAccess»</td><td>Supplies the issued RFQs and their response statuses</td></tr>
+    <tr><td>Supplier «entity»</td><td>Identifies the supplier that submitted the quotation</td></tr>
+    <tr><td>QuotationEvaluation «entity»</td><td>Consumes the registered quotations for evaluation (UC-08)</td></tr>
+    <tr><td>Database</td><td>Stores quotations, documents, and RFQ response status</td></tr>
+  </table>
+</div>
+</body>
+</html>

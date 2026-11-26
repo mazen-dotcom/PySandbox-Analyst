@@ -1,0 +1,48 @@
+sequenceDiagram
+    autonumber
+    actor SCM as Supply Chain Manager
+    box rgb(236,236,255) View Layer
+        participant PRW as PurchaseRequestWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant PRH as PurchaseRequestHandler «controller»
+        participant PR as PurchaseRequest «entity»
+        participant PP as ProcurementPolicy «entity»
+        participant RA as RequestApproval «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PRDA as PurchaseRequestDA «dataAccess»
+    end
+    participant DB as Database
+
+    SCM ->> PRW: selectCreatePurchaseRequest()
+    PRW ->> PRH: getShortageItems()
+    PRH ->> PRDA: findShortageItems()
+    PRDA ->> DB: SELECT products with stock below required level
+    DB -->> PRDA: shortage rows
+    PRDA -->> PRH: shortage items
+    PRH -->> PRW: display shortage items
+    SCM ->> PRW: enterRequestDetails(items, quantities, justification, priority, requiredDate, estimatedTotal)
+    PRW ->> PRH: submitRequest(details)
+    PRH ->> PR: new PurchaseRequest(details)
+    PR -->> PRH: request object
+    PR ->> PR: validateRequest()
+    PRH ->> PRDA: findRelatedRequests(productCodes, requiredDate)
+    PRDA ->> DB: SELECT related open requests
+    DB -->> PRDA: related requests
+    PRDA -->> PRH: related requests
+    alt Possible threshold split detected
+        PRH -->> PRW: flag requests for review before submission
+        PRW -->> SCM: show split warning
+    else No split detected
+        PRH ->> PR: setStatus(Pending Approval)
+        PRH ->> PRDA: save(request)
+        PRDA ->> DB: INSERT purchase request with reference and creator
+        DB -->> PRDA: requestId and reference
+        PRDA -->> PRH: saved request
+        PRH ->> PP: getAuthorityLevel(estimatedTotal)
+        PP -->> PRH: required approver level
+        PRH ->> RA: new RequestApproval(requestId, approverLevel)
+        PRH -->> PRW: request saved with reference and status Pending Approval
+        PRW -->> SCM: display confirmation
+    end

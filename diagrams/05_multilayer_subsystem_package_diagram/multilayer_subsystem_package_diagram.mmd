@@ -1,0 +1,244 @@
+flowchart LR
+    subgraph ACC["«package» Access Control Subsystem (UC-01)"]
+        direction TB
+        subgraph ACC_V["View Layer"]
+            direction LR
+            LOGINW["LoginWindow «view»"]
+        end
+        subgraph ACC_D["Domain Layer"]
+            direction LR
+            UH["UserHandler «controller»"]
+            USER_E["User «entity»"]
+            ROLE_E["Role «entity»"]
+            PERM_E["Permission «entity»"]
+            AUDIT_E["AuditLog «entity»"]
+        end
+        subgraph ACC_DA["Data Access Layer"]
+            direction LR
+            UDA["UserDA «dataAccess»"]
+            ADA["AuditLogDA «dataAccess»"]
+        end
+        LOGINW --> UH
+        UH --> USER_E
+        UH --> ROLE_E
+        UH --> PERM_E
+        UH --> AUDIT_E
+        UH --> UDA
+        UH --> ADA
+    end
+
+    subgraph PRD["«package» Product and Inventory Subsystem (UC-02, UC-04)"]
+        direction TB
+        subgraph PRD_V["View Layer"]
+            direction LR
+            PRODW["ProductWindow «view»"]
+            SHORTW["ShortageReviewWindow «view»"]
+        end
+        subgraph PRD_D["Domain Layer"]
+            direction LR
+            PRODH["ProductHandler «controller»"]
+            INVH["InventoryHandler «controller»"]
+            PROD_E["Product «entity»"]
+            INV_E["Inventory «entity»"]
+            SHORT_E["ShortageReport «entity»"]
+            MDC_E["MasterDataChange «entity»"]
+        end
+        subgraph PRD_DA["Data Access Layer"]
+            direction LR
+            PRODDA["ProductDA «dataAccess»"]
+        end
+        PRODW --> PRODH
+        SHORTW --> INVH
+        PRODH --> PROD_E
+        PRODH --> MDC_E
+        PRODH --> PRODDA
+        INVH --> INV_E
+        INVH --> SHORT_E
+        INVH --> PRODDA
+    end
+
+    subgraph SUP["«package» Supplier Management Subsystem (UC-03, UC-14)"]
+        direction TB
+        subgraph SUP_V["View Layer"]
+            direction LR
+            SUPPW["SupplierWindow «view»"]
+            PERFW["PerformanceReviewWindow «view»"]
+        end
+        subgraph SUP_D["Domain Layer"]
+            direction LR
+            SUPPH["SupplierHandler «controller»"]
+            SUPP_E["Supplier «entity»"]
+            SDOC_E["SupplierDocument «entity»"]
+            SPR_E["SupplierPerformanceReview «entity»"]
+        end
+        subgraph SUP_DA["Data Access Layer"]
+            direction LR
+            SUPPDA["SupplierDA «dataAccess»"]
+        end
+        SUPPW --> SUPPH
+        SUPPH --> SUPP_E
+        SUPPH --> SDOC_E
+        SUPPH --> SUPPDA
+    end
+
+    subgraph GOV["«package» Governance and Reporting Subsystem (UC-15)"]
+        direction TB
+        subgraph GOV_V["View Layer"]
+            direction LR
+            KPIW["KPIWindow «view»"]
+        end
+        subgraph GOV_D["Domain Layer"]
+            direction LR
+            REVH["ReviewHandler «controller»"]
+            KPI_E["KPIRecord «entity»"]
+        end
+        subgraph GOV_DA["Data Access Layer"]
+            direction LR
+            KDA["KPIRecordDA «dataAccess»"]
+        end
+        KPIW --> REVH
+        REVH --> KPI_E
+        REVH --> KDA
+    end
+
+    subgraph SRC["«package» Sourcing Subsystem (UC-05, UC-06, UC-07, UC-08, UC-13)"]
+        direction TB
+        subgraph SRC_V["View Layer"]
+            direction LR
+            PRW["PurchaseRequestWindow «view»"]
+            APPW["ApprovalWindow «view»"]
+            RFQW["RFQWindow «view»"]
+            QUOTW["QuotationWindow «view»"]
+            EVALW["EvaluationWindow «view»"]
+        end
+        subgraph SRC_D["Domain Layer"]
+            direction LR
+            PRH["PurchaseRequestHandler «controller»"]
+            SRH["SourcingHandler «controller»"]
+            PR_E["PurchaseRequest «entity»"]
+            PRI_E["PurchaseRequestItem «entity»"]
+            APPR_E["RequestApproval «entity»"]
+            BUDG_E["BudgetCheck «entity»"]
+            POL_E["ProcurementPolicy «entity»"]
+            RFQ_E["RFQ «entity»"]
+            RFQI_E["RFQItem «entity»"]
+            DISP_E["RFQDispatch «entity»"]
+            QUOT_E["Quotation «entity»"]
+            QDOC_E["QuotationDocument «entity»"]
+            QEVAL_E["QuotationEvaluation «entity»"]
+        end
+        subgraph SRC_DA["Data Access Layer"]
+            direction LR
+            PRDA["PurchaseRequestDA «dataAccess»"]
+            RFQDA["RFQDA «dataAccess»"]
+            QDA["QuotationDA «dataAccess»"]
+        end
+        PRW --> PRH
+        APPW --> PRH
+        RFQW --> SRH
+        QUOTW --> SRH
+        EVALW --> SRH
+        PRH --> PR_E
+        PRH --> PRI_E
+        PRH --> APPR_E
+        PRH --> BUDG_E
+        PRH --> POL_E
+        SRH --> RFQ_E
+        SRH --> RFQI_E
+        SRH --> DISP_E
+        SRH --> QUOT_E
+        SRH --> QDOC_E
+        SRH --> QEVAL_E
+        PRH --> PRDA
+        SRH --> RFQDA
+        SRH --> QDA
+    end
+
+    subgraph ORD["«package» Order and Delivery Subsystem (UC-09, UC-10, UC-11)"]
+        direction TB
+        subgraph ORD_V["View Layer"]
+            direction LR
+            POW["PurchaseOrderWindow «view»"]
+            TRKW["OrderTrackingWindow «view»"]
+            RECW["GoodsReceiptWindow «view»"]
+        end
+        subgraph ORD_D["Domain Layer"]
+            direction LR
+            OH["OrderHandler «controller»"]
+            DH["DeliveryHandler «controller»"]
+            PO_E["PurchaseOrder «entity»"]
+            POI_E["PurchaseOrderItem «entity»"]
+            CON_E["Contract «entity»"]
+            DCONF_E["DeliveryConfirmation «entity»"]
+            SHIP_E["Shipment «entity»"]
+            GR_E["GoodsReceipt «entity»"]
+            DISC_E["DeliveryDiscrepancy «entity»"]
+        end
+        subgraph ORD_DA["Data Access Layer"]
+            direction LR
+            PODA["PurchaseOrderDA «dataAccess»"]
+            DDA["DeliveryDA «dataAccess»"]
+        end
+        POW --> OH
+        TRKW --> DH
+        RECW --> DH
+        OH --> PO_E
+        OH --> POI_E
+        OH --> CON_E
+        OH --> DCONF_E
+        DH --> SHIP_E
+        DH --> GR_E
+        DH --> DISC_E
+        OH --> PODA
+        DH --> DDA
+    end
+
+    subgraph APS["«package» Accounts Payable Subsystem (UC-12)"]
+        direction TB
+        subgraph APS_V["View Layer"]
+            direction LR
+            PAYW["PaymentNotificationWindow «view»"]
+        end
+        subgraph APS_D["Domain Layer"]
+            direction LR
+            PYH["PaymentHandler «controller»"]
+            PN_E["PaymentNotification «entity»"]
+            PM_E["PaymentMatch «entity»"]
+            INVD_E["InvoiceDocument «entity»"]
+        end
+        subgraph APS_DA["Data Access Layer"]
+            direction LR
+            PNDA["PaymentNotificationDA «dataAccess»"]
+        end
+        PAYW --> PYH
+        PYH --> PN_E
+        PYH --> PM_E
+        PYH --> INVD_E
+        PYH --> PNDA
+    end
+
+    PRD -- "product references" --> SRC
+    SUP -- "eligible suppliers" --> SRC
+    SRC -- "approved award" --> ORD
+    ORD -- "receipt and invoice data" --> APS
+    ACC -. "authorization" .-> PRD
+    ACC -. "authorization" .-> SUP
+    ACC -. "authorization" .-> SRC
+    ACC -. "authorization" .-> ORD
+    ACC -. "authorization" .-> APS
+    ACC -. "authorization" .-> GOV
+    SRC -. "audit and KPI data" .-> GOV
+    ORD -. "delivery KPI data" .-> GOV
+    APS -. "payment KPI data" .-> GOV
+
+    PERFW --> REVH
+    REVH --> SPR_E
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    class LOGINW,PRODW,SHORTW,SUPPW,PERFW,KPIW,PRW,APPW,RFQW,QUOTW,EVALW,POW,TRKW,RECW,PAYW view
+    class UH,PRODH,INVH,SUPPH,REVH,PRH,SRH,OH,DH,PYH ctrl
+    class USER_E,ROLE_E,PERM_E,AUDIT_E,PROD_E,INV_E,SHORT_E,MDC_E,SUPP_E,SDOC_E,SPR_E,KPI_E,PR_E,PRI_E,APPR_E,BUDG_E,POL_E,RFQ_E,RFQI_E,DISP_E,QUOT_E,QDOC_E,QEVAL_E,PO_E,POI_E,CON_E,DCONF_E,SHIP_E,GR_E,DISC_E,PN_E,PM_E,INVD_E ent
+    class UDA,ADA,PRODDA,SUPPDA,KDA,PRDA,RFQDA,QDA,PODA,DDA,PNDA da

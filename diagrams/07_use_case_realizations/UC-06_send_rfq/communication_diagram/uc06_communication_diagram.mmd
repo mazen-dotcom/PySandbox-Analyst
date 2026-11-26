@@ -1,0 +1,42 @@
+flowchart TB
+    PO(["Purchasing Officer<br/>«actor»"])
+    RW["RFQWindow<br/>«view» (View Layer)"]
+    SH["SourcingHandler<br/>«controller» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    RFQ["RFQ<br/>«entity» (Domain Layer)"]
+    RI["RFQItem<br/>«entity» (Domain Layer)"]
+    RD["RFQDispatch<br/>«entity» (Domain Layer)"]
+    PRDA["PurchaseRequestDA<br/>«dataAccess» (Data Access Layer)"]
+    SDA["SupplierDA<br/>«dataAccess» (Data Access Layer)"]
+    RDA["RFQDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    PO -- "1: openRFQFunction()" --> RW
+    RW -- "2: loadApprovedRequest()" --> SH
+    SH -- "3: findApprovedRequest()" --> PRDA
+    PRDA -- "4: SELECT approved purchase request" --> DB
+    SH -- "5: getRequiredQuoteCount(estimatedTotal)" --> PP
+    SH -- "6: findEligibleSuppliers(productCodes)" --> SDA
+    SDA -- "7: SELECT eligible suppliers" --> DB
+    PO -- "8: selectSuppliers(deadline, commercialRequirements)" --> RW
+    RW -- "9: createRFQ(request, selection)" --> SH
+    SH -- "10: new RFQ(request, deadline)" --> RFQ
+    SH -- "11: new RFQItem(product, quantity)" --> RI
+    SH -- "12: validateSourcingRules()" --> RFQ
+    SH -- "13: generateRFQDocument()" --> RFQ
+    PO -- "14: sendRFQ()" --> RW
+    RW -- "15: dispatchRFQ(rfq, suppliers)" --> SH
+    SH -- "16: recordDispatch(recipients)" --> RD
+    SH -- "17: saveRFQ(rfq, dispatches)" --> RDA
+    RDA -- "18: INSERT RFQ, items, and dispatches" --> DB
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class RW view
+    class SH ctrl
+    class PP,RFQ,RI,RD ent
+    class PRDA,SDA,RDA da
+    class DB db

@@ -1,0 +1,72 @@
+classDiagram
+direction LR
+
+class LoginWindow {
+  <<view>>
+  +displayLoginForm() void
+  +submitCredentials(String username, String password) void
+}
+
+class UserHandler {
+  <<controller>>
+  +login(String username, String password) Boolean
+  +checkPermissions(User user) Boolean
+  +recordLoginAttempt(String username, Boolean successful) void
+}
+
+class UserDA {
+  <<dataAccess>>
+  +findByUsername(String username) User
+  +save(User user) void
+}
+
+class User {
+  <<entity>>
+  -int userId
+  -String username
+  -String email
+  -String password
+  -Boolean isActive
+  -Date lastAccessReviewDate
+  +login(String username, String password) Boolean
+  +logout() void
+  +validateCredentials() Boolean
+  +checkPermissions() Boolean
+  +recordAccessReview() void
+}
+
+class Role {
+  <<entity>>
+  -int roleId
+  -String roleName
+  -String description
+  +assignPermission(Permission permission) void
+  +removePermission(Permission permission) void
+  +checkAccess() Boolean
+}
+
+class Permission {
+  <<entity>>
+  -int permissionId
+  -String permissionName
+  -String description
+  +validatePermission() Boolean
+}
+
+class AuditLog {
+  <<entity>>
+  -int logId
+  -String action
+  -DateTime occurredAt
+  -String evidenceReference
+}
+
+LoginWindow --> UserHandler : calls
+UserHandler --> User : uses
+UserHandler --> Role : uses
+UserHandler --> AuditLog : records
+UserHandler --> UserDA : accesses
+UserDA --> User : maps
+User --> Role : has assigned
+Role --> Permission : contains
+User --> AuditLog : performs

@@ -1,0 +1,50 @@
+sequenceDiagram
+    autonumber
+    actor USR as Authorized System User
+    box rgb(236,236,255) View Layer
+        participant LW as LoginWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant UH as UserHandler «controller»
+        participant US as User «entity»
+        participant RO as Role «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant UDA as UserDA «dataAccess»
+    end
+    participant DB as Database
+
+    USR ->> LW: selectLogIn()
+    LW -->> USR: display login form
+    USR ->> LW: enterCredentials(username, password)
+    LW ->> UH: login(username, password)
+    UH ->> UDA: findUserByUsername(username)
+    UDA ->> DB: SELECT user by username
+    DB -->> UDA: user row
+    UDA -->> UH: user record
+    UH ->> US: validateCredentials(password)
+    alt Credentials valid and account active
+        US -->> UH: credentials valid
+        UH ->> RO: checkAccess()
+        RO -->> UH: role and permissions
+        UH ->> UDA: saveAuditLog(LOGIN_SUCCESS)
+        UDA ->> DB: INSERT audit log entry
+        UH -->> LW: authenticated with role
+        LW -->> USR: display home page for role
+    else Incorrect credentials
+        US -->> UH: credentials invalid
+        UH ->> UDA: saveAuditLog(LOGIN_FAILED)
+        UDA ->> DB: INSERT audit log entry
+        UH -->> LW: invalid credentials
+        LW -->> USR: display error and allow another attempt
+    else Account inactive or unauthorized
+        US -->> UH: access denied
+        UH ->> UDA: saveAuditLog(ACCESS_DENIED)
+        UDA ->> DB: INSERT audit log entry
+        UH -->> LW: access denied
+        LW -->> USR: display access denied
+    else Technical error or system unavailable
+        UDA -->> UH: database unavailable
+        UH -->> LW: login cannot be completed
+        LW -->> USR: inform user that login cannot be completed
+    end

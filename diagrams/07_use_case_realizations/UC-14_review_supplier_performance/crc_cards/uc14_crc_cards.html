@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-14 Review Supplier Performance</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-14 Review Supplier Performance</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">PerformanceReviewWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display verified delivery, discrepancy and quality data</td><td>ReviewHandler</td></tr>
+      <tr><td>Collect scores, evidence and corrective actions</td><td>ReviewHandler</td></tr>
+      <tr><td>Collect the compliance status from Legal</td><td>ReviewHandler</td></tr>
+      <tr><td>Collect the approver decision: continue, restrict or requalify</td><td>ReviewHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">ReviewHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Review Supplier Performance use case</td><td>PerformanceReviewWindow</td></tr>
+      <tr><td>Retrieve verified performance data</td><td>SupplierPerformanceReviewDA</td></tr>
+      <tr><td>Get the approved scoring method</td><td>ProcurementPolicy</td></tr>
+      <tr><td>Create the review with the submitted scores</td><td>SupplierPerformanceReview</td></tr>
+      <tr><td>Update supplier eligibility and compliance status</td><td>Supplier</td></tr>
+      <tr><td>Log any restriction override</td><td>AuditLog</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">SupplierPerformanceReview «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold score, evidence, corrective actions, review date and owner</td><td>Supplier</td></tr>
+      <tr><td>Check that the approver did not prepare the scores</td><td>ReviewHandler</td></tr>
+      <tr><td>Defer the decision when data is insufficient</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Supplier «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold compliance status and eligibility: Approved, Restricted or Requalify</td><td>SupplierPerformanceReview</td></tr>
+      <tr><td>Restrict or block award eligibility immediately</td><td>ReviewHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">ProcurementPolicy «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the approved scoring method</td><td>ReviewHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">AuditLog «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Record the review decision, override reason and approver</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">SupplierPerformanceReviewDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query verified deliveries, discrepancies, quality and compliance data</td><td>Database</td></tr>
+      <tr><td>Save the review result and corrective actions</td><td>Database</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-14</th></tr>
+    <tr><td>DeliveryDiscrepancy «entity»</td><td>Supplies verified discrepancy data (UC-11)</td></tr>
+    <tr><td>PurchaseOrder «entity»</td><td>Supplies order and delivery history (UC-09, UC-11)</td></tr>
+    <tr><td>User «entity»</td><td>Identifies the approver and the score preparer</td></tr>
+    <tr><td>Database</td><td>Stores reviews and returns query results</td></tr>
+  </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    actor APP as Authorized Approver
+    actor SSS as Strategic Sourcing Specialist
+    actor LEG as Legal Department
+    box rgb(236,236,255) View Layer
+        participant PRW as PerformanceReviewWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant RH as ReviewHandler «controller»
+        participant SPR as SupplierPerformanceReview «entity»
+        participant SUP as Supplier «entity»
+        participant PP as ProcurementPolicy «entity»
+        participant AL as AuditLog «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant SPRDA as SupplierPerformanceReviewDA «dataAccess»
+    end
+    participant DB as Database
+
+    APP ->> PRW: openPerformanceReview(supplierId)
+    PRW ->> RH: getSupplierPerformanceData(supplierId)
+    RH ->> SPRDA: findVerifiedPerformanceData(supplierId)
+    SPRDA ->> DB: SELECT verified deliveries, discrepancies, quality and compliance
+    DB -->> SPRDA: performance rows
+    SPRDA -->> RH: verified performance data
+    RH -->> PRW: display data and evidence
+    SSS ->> PRW: recordScores(scores, evidence, correctiveActions)
+    PRW ->> RH: submitScores(scores, evidence)
+    RH ->> PP: getScoringMethod()
+    PP -->> RH: approved scoring method
+    RH ->> SPR: new SupplierPerformanceReview(supplierId, scores)
+    SPR ->> SPR: checkPreparerNotApprover(approverId)
+    LEG ->> PRW: confirmComplianceStatus(supplierId, status)
+    PRW ->> RH: recordComplianceStatus(supplierId, status)
+    RH ->> SUP: setComplianceStatus(status)
+    APP ->> PRW: submitReviewDecision(continue, restrict or requalify)
+    PRW ->> RH: recordReviewDecision(decision)
+    alt Data insufficient
+        RH ->> SPR: deferDecision(reason)
+        PRW -->> APP: flag review as deferred
+    else Decision recorded and approver is independent
+        RH ->> SPR: setResult(decision, reviewDate, owner)
+        RH ->> SPRDA: save(review)
+        SPRDA ->> DB: INSERT review result and corrective actions
+        RH ->> SUP: updateEligibility(decision)
+        PRW -->> APP: display review outcome
+    else Restrict or block override requested
+        RH ->> AL: record(override, reason, approver)
+        PRW -->> APP: display override logged
+    end

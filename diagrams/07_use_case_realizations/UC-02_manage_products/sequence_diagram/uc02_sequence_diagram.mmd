@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    actor PDS as Product Data Specialist
+    actor MFG as Manufacturing Department
+    box rgb(236,236,255) View Layer
+        participant PW as ProductWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant PH as ProductHandler «controller»
+        participant PRD as Product «entity»
+        participant MDC as MasterDataChange «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PDA as ProductDA «dataAccess»
+    end
+    participant DB as Database
+
+    PDS ->> PW: openProductManagement()
+    PW ->> PH: loadProductList()
+    PH ->> PDA: findProducts()
+    PDA ->> DB: SELECT products
+    PDA -->> PH: product list
+    PH -->> PW: display product list and search
+    PDS ->> PW: searchProduct(productCode) or selectAddNewProduct()
+    PW ->> PH: searchProduct(productCode)
+    PH ->> PDA: findByCode(productCode)
+    PDA ->> DB: SELECT product by code
+    PDA -->> PH: product record
+    PH -->> PW: display product details
+    MFG -->> PDS: confirm specifications, materials, and quality details
+    PDS ->> PW: enterProductData(details)
+    PW ->> PH: saveProduct(details)
+    PH ->> PRD: validateProductData()
+    PH ->> PDA: checkDuplicateCode(productCode)
+    PDA ->> DB: SELECT count by product code
+    alt Duplicate code, missing, or invalid data
+        PH -->> PW: return errors and fields to correct
+        PW -->> PDS: warn duplicate code or highlight fields
+    else Data valid
+        opt Change affects purchasing
+            PH ->> MDC: new MasterDataChange(oldValues, newValues, requester)
+            PH ->> MDC: approveChange(independent reviewer)
+        end
+        alt Specification change not approved
+            PH -->> PW: previously approved specification remains in force
+            PW -->> PDS: display rejection
+        else Approved or no purchasing impact
+            PH ->> PDA: saveProduct(product)
+            PDA ->> DB: INSERT or UPDATE product
+            PH -->> PW: product saved
+            PW -->> PDS: confirm product data saved
+        end
+    end

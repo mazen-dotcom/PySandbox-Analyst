@@ -1,0 +1,38 @@
+flowchart TB
+    SCM(["Supply Chain Manager<br/>«actor»"])
+    PRW["PurchaseRequestWindow<br/>«view» (View Layer)"]
+    PRH["PurchaseRequestHandler<br/>«controller» (Domain Layer)"]
+    PR["PurchaseRequest<br/>«entity» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    RA["RequestApproval<br/>«entity» (Domain Layer)"]
+    PRDA["PurchaseRequestDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    SCM -- "1: selectCreatePurchaseRequest()" --> PRW
+    PRW -- "2: getShortageItems()" --> PRH
+    PRH -- "3: findShortageItems()" --> PRDA
+    PRDA -- "4: SELECT shortage rows" --> DB
+    SCM -- "5: enterRequestDetails(...)" --> PRW
+    PRW -- "6: submitRequest(details)" --> PRH
+    PRH -- "7: new PurchaseRequest(details)" --> PR
+    PR -- "8: validateRequest()" --> PR
+    PRH -- "9: findRelatedRequests(...)" --> PRDA
+    PRDA -- "10: SELECT related requests" --> DB
+    PRH -- "11: setStatus(Pending Approval)" --> PR
+    PRH -- "12: save(request)" --> PRDA
+    PRDA -- "13: INSERT purchase request" --> DB
+    PRH -- "14: getAuthorityLevel(estimatedTotal)" --> PP
+    PRH -- "15: new RequestApproval(requestId, level)" --> RA
+    PRH -- "16: confirmation with reference" --> PRW
+    PRW -- "17: display confirmation" --> SCM
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class PRW view
+    class PRH ctrl
+    class PR,PP,RA ent
+    class PRDA da
+    class DB db

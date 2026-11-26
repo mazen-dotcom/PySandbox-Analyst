@@ -1,0 +1,111 @@
+classDiagram
+direction LR
+
+class SupplierWindow {
+  <<view>>
+  +displaySupplierList() void
+  +displaySupplierForm() void
+  +submitSupplier(Supplier supplier) void
+  +uploadDocument(SupplierDocument document) void
+}
+
+class PerformanceReviewWindow {
+  <<view>>
+  +displayPerformanceReview(Supplier supplier) void
+  +submitPerformanceReview(SupplierPerformanceReview review) void
+}
+
+class SupplierHandler {
+  <<controller>>
+  +registerSupplier(Supplier supplier) void
+  +searchSupplier(String name) Supplier
+  +updateSupplier(Supplier supplier) void
+  +deactivateSupplier(Supplier supplier) void
+  +uploadSupplierDocument(Supplier supplier, SupplierDocument document) void
+}
+
+class ReviewHandler {
+  <<controller>>
+  +createPerformanceReview(Supplier supplier) SupplierPerformanceReview
+  +scoreSupplierPerformance(SupplierPerformanceReview review) void
+  +approveReview(SupplierPerformanceReview review) void
+}
+
+class SupplierDA {
+  <<dataAccess>>
+  +findById(int supplierId) Supplier
+  +findByName(String name) Supplier
+  +save(Supplier supplier) void
+}
+
+class StrategicSourcingSpecialist {
+  +registerSupplier(Supplier supplier) void
+  +searchSupplier(String name) Supplier
+  +viewSupplier(Supplier supplier) Supplier
+  +updateSupplier(Supplier supplier) void
+  +deactivateSupplier(Supplier supplier) void
+  +uploadSupplierDocument(Supplier supplier, SupplierDocument document) void
+  +evaluateQuotations(Quotation[] quotations) QuotationEvaluation
+  +selectSupplier(Quotation quotation, String justification) void
+  +submitAwardForApproval(QuotationEvaluation evaluation) void
+  +scoreSupplierPerformance(SupplierPerformanceReview review) void
+}
+
+class Supplier {
+  <<entity>>
+  -int supplierId
+  -String supplierName
+  -String contactPerson
+  -String email
+  -String phone
+  -String address
+  -String status
+  -String complianceStatus
+  -String eligibilityStatus
+  +registerSupplier() void
+  +updateSupplier() void
+  +deactivateSupplier() void
+  +searchSupplier(String name) Supplier
+  +viewSupplier() Supplier
+  +validateSupplier() Boolean
+  +checkEligibility() Boolean
+}
+
+class SupplierDocument {
+  <<entity>>
+  -int documentId
+  -String documentName
+  -String documentType
+  -String filePath
+  -Date uploadDate
+  -String verificationStatus
+  +uploadDocument() void
+  +verifyDocument() Boolean
+  +updateDocument() void
+}
+
+class SupplierPerformanceReview {
+  <<entity>>
+  -int reviewId
+  -Date reviewDate
+  -Decimal score
+  -String correctiveAction
+  -String decision
+  -String status
+  +recordReview() void
+}
+
+SupplierWindow --> SupplierHandler : calls
+PerformanceReviewWindow --> ReviewHandler : calls
+StrategicSourcingSpecialist --> SupplierWindow : uses
+StrategicSourcingSpecialist --> PerformanceReviewWindow : uses
+StrategicSourcingSpecialist --> Supplier : manages
+Supplier --> SupplierDocument : owns
+Supplier --> SupplierPerformanceReview : reviewed
+SupplierHandler --> Supplier : uses
+SupplierHandler --> SupplierDocument : uses
+SupplierHandler --> SupplierDA : accesses
+SupplierDA --> Supplier : maps
+ReviewHandler --> SupplierPerformanceReview : uses
+ReviewHandler --> Supplier : uses
+ReviewHandler --> SupplierDA : accesses

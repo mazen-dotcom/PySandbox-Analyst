@@ -1,0 +1,36 @@
+flowchart TB
+    SSS(["Strategic Sourcing Specialist<br/>«actor»"])
+    SW["SupplierWindow<br/>«view» (View Layer)"]
+    SH["SupplierHandler<br/>«controller» (Domain Layer)"]
+    SUP["Supplier<br/>«entity» (Domain Layer)"]
+    SD["SupplierDocument<br/>«entity» (Domain Layer)"]
+    MDC["MasterDataChange<br/>«entity» (Domain Layer)"]
+    SDA["SupplierDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    SSS -- "1: openSupplierManagement()" --> SW
+    SW -- "2: loadSuppliers()" --> SH
+    SH -- "3: findSuppliers()" --> SDA
+    SDA -- "4: SELECT suppliers" --> DB
+    SSS -- "5: enterSupplierDetails(details)" --> SW
+    SSS -- "6: uploadDocuments(files)" --> SW
+    SW -- "7: saveSupplier(details, documents)" --> SH
+    SH -- "8: validateSupplier()" --> SUP
+    SH -- "9: checkDuplicateSupplier(supplierName, email)" --> SDA
+    SDA -- "10: SELECT matching suppliers" --> DB
+    SH -- "11: verifyDocument()" --> SD
+    SH -- "12: new MasterDataChange(oldValues, newValues)" --> MDC
+    SH -- "13: routeForIndependentReview(reviewer)" --> MDC
+    SH -- "14: saveSupplier(supplier)" --> SDA
+    SDA -- "15: INSERT or UPDATE supplier" --> DB
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class SW view
+    class SH ctrl
+    class SUP,SD,MDC ent
+    class SDA da
+    class DB db

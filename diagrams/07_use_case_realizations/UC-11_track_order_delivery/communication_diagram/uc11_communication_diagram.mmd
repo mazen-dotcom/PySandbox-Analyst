@@ -1,0 +1,46 @@
+flowchart TB
+    LC(["Logistics Coordinator<br/>«actor»"])
+    WH(["Warehouse Department<br/>«actor»"])
+    OTW["OrderTrackingWindow<br/>«view» (View Layer)"]
+    DH["DeliveryHandler<br/>«controller» (Domain Layer)"]
+    SH["Shipment<br/>«entity» (Domain Layer)"]
+    GR["GoodsReceipt<br/>«entity» (Domain Layer)"]
+    DD["DeliveryDiscrepancy<br/>«entity» (Domain Layer)"]
+    POE["PurchaseOrder<br/>«entity» (Domain Layer)"]
+    SPR["SupplierPerformanceReview<br/>«entity» (Domain Layer)"]
+    SHDA["ShipmentDA<br/>«dataAccess» (Data Access Layer)"]
+    GRDA["GoodsReceiptDA<br/>«dataAccess» (Data Access Layer)"]
+    DDDA["DeliveryDiscrepancyDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    LC -- "1: openTrackOrderDelivery()" --> OTW
+    OTW -- "2: getActiveOrders()" --> DH
+    DH -- "3: findActiveShipments()" --> SHDA
+    SHDA -- "4: SELECT active orders" --> DB
+    LC -- "5: selectOrder(orderId)" --> OTW
+    OTW -- "6: getOrderDetails(orderId)" --> DH
+    DH -- "7: getTrackingStatus(orderId)" --> SH
+    LC -- "8: updateShipmentProgress(status, date)" --> OTW
+    OTW -- "9: recordShipmentProgress(status, date)" --> DH
+    DH -- "10: updateProgress(status, date)" --> SH
+    WH -- "11: confirmReceipt(quantities, inspection)" --> OTW
+    OTW -- "12: recordReceipt(orderId, receipt)" --> DH
+    DH -- "13: new GoodsReceipt(orderId, quantities)" --> GR
+    DH -- "14: save(goodsReceipt)" --> GRDA
+    DH -- "15: setStatus(Delivered)" --> SH
+    DH -- "16: updateOrderStatus(Received)" --> POE
+    DH -- "17: new DeliveryDiscrepancy(type, quantity)" --> DD
+    DH -- "18: save(discrepancy)" --> DDDA
+    DH -- "19: setRevisedDate(date)" --> SH
+    DH -- "20: addVerifiedOutcome(orderId, outcome)" --> SPR
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class OTW view
+    class DH ctrl
+    class SH,GR,DD,POE,SPR ent
+    class SHDA,GRDA,DDDA da
+    class DB db

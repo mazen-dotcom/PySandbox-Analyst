@@ -1,0 +1,98 @@
+flowchart LR
+    subgraph ACTORS["Actors"]
+        direction TB
+        ALL(["All Authorized Users"])
+        PDS(["Product Data Specialist"])
+        SSS(["Strategic Sourcing Specialist"])
+        SCM(["Supply Chain Manager"])
+        PO(["Purchasing Officer"])
+        LC(["Logistics Coordinator"])
+        AA(["Authorized Approver"])
+        FIN(["Finance Department"])
+        WH(["Warehouse Department"])
+        MFG(["Manufacturing Department"])
+        LEG(["Legal Department"])
+    end
+
+    subgraph ACC["Access Control Subsystem"]
+        UC1(["UC-01 Log In"])
+        C1["Shared classes: User, Role, Permission, AuditLog"]
+    end
+
+    subgraph PROD["Product and Inventory Subsystem"]
+        UC2(["UC-02 Manage Products"])
+        UC4(["UC-04 Review Product Shortage"])
+        C2["Shared classes: Product, Inventory, ShortageReport, MasterDataChange"]
+    end
+
+    subgraph SUPP["Supplier Management Subsystem"]
+        UC3(["UC-03 Manage Suppliers"])
+        UC14(["UC-14 Review Supplier Performance"])
+        C3["Shared classes: Supplier, SupplierDocument, SupplierPerformanceReview"]
+    end
+
+    subgraph SOURCE["Sourcing Subsystem"]
+        UC5(["UC-05 Create Purchase Request"])
+        UC13(["UC-13 Approve Purchase Request"])
+        UC6(["UC-06 Send RFQ"])
+        UC7(["UC-07 Register Quotations"])
+        UC8(["UC-08 Evaluate Quotations and Select Supplier"])
+        C4["Shared classes: PurchaseRequest, RFQ, Quotation, QuotationEvaluation, RequestApproval, BudgetCheck"]
+    end
+
+    subgraph ORDER["Order and Delivery Subsystem"]
+        UC9(["UC-09 Create and Dispatch Purchase Order"])
+        UC10(["UC-10 Confirm Availability and Delivery Date"])
+        UC11(["UC-11 Track Order / Delivery"])
+        C5["Shared classes: PurchaseOrder, Shipment, GoodsReceipt, DeliveryDiscrepancy"]
+    end
+
+    subgraph AP["Accounts Payable Subsystem"]
+        UC12(["UC-12 Notify Finance for Payment Processing"])
+        C6["Shared classes: PaymentNotification, PaymentMatch, InvoiceDocument"]
+    end
+
+    subgraph GOV["Governance and Reporting Subsystem"]
+        UC15(["UC-15 Review Procurement KPIs"])
+        C7["Shared classes: KPIRecord, ProcurementPolicy"]
+    end
+
+    ALL --- UC1
+    PDS --- UC2
+    SCM --- UC4
+    SCM --- UC5
+    WH --- UC4
+    MFG --- UC2
+    MFG --- UC6
+    MFG --- UC8
+    SSS --- UC3
+    SSS --- UC8
+    LEG --- UC3
+    LEG --- UC14
+    WH --- UC14
+    PO --- UC6
+    PO --- UC7
+    PO --- UC9
+    PO --- UC10
+    PO --- UC12
+    LC --- UC11
+    WH --- UC11
+    WH --- UC12
+    AA --- UC13
+    AA --- UC8
+    AA --- UC9
+    AA --- UC14
+    AA --- UC15
+    FIN --- UC13
+    FIN --- UC8
+    FIN --- UC9
+    FIN --- UC12
+    FIN --- UC15
+    LC --- UC10
+
+    classDef uc fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef cls fill:#F7F7F7,stroke:#999999,color:#131300
+    classDef actor fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC10,UC11,UC12,UC13,UC14,UC15 uc
+    class C1,C2,C3,C4,C5,C6,C7 cls
+    class ALL,PDS,SSS,SCM,PO,LC,AA,FIN,WH,MFG,LEG actor

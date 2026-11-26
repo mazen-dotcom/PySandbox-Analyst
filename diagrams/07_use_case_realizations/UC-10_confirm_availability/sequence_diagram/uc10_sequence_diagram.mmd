@@ -1,0 +1,42 @@
+sequenceDiagram
+    autonumber
+    actor PO as Purchasing Officer
+    box rgb(236,236,255) View Layer
+        participant OCW as OrderConfirmationWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant OH as OrderHandler «controller»
+        participant POE as PurchaseOrder «entity»
+        participant DC as DeliveryConfirmation «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PODA as PurchaseOrderDA «dataAccess»
+        participant DCDA as DeliveryConfirmationDA «dataAccess»
+    end
+    participant DB as Database
+
+    PO ->> OCW: openOrderConfirmation()
+    OCW ->> OH: getOrdersAwaitingConfirmation()
+    OH ->> PODA: findDispatchedOrders()
+    PODA ->> DB: SELECT dispatched orders without confirmation
+    DB -->> PODA: order rows
+    PODA -->> OH: orders awaiting confirmation
+    OH -->> OCW: display orders awaiting confirmation
+    PO ->> OCW: recordSupplierResponse(orderId, availability, proposedDate)
+    OCW ->> OH: recordConfirmation(orderId, response)
+    OH ->> DC: new DeliveryConfirmation(orderId, response)
+    alt Full quantity available and date agreed
+        OH ->> DC: setAgreedDeliveryDate(date)
+        OH ->> POE: setConfirmationStatus(Confirmed)
+        OH ->> DCDA: save(deliveryConfirmation)
+        DCDA ->> DB: INSERT availability and confirmed delivery date
+        OCW -->> PO: display confirmed delivery date
+    else Supplier cannot supply the full quantity
+        OH ->> DC: recordShortfall(quantity)
+        OH ->> DCDA: save(deliveryConfirmation)
+        OCW -->> PO: display recorded shortfall
+    else Supplier proposes a different date or does not respond
+        OH ->> DC: recordRevisedDate(date)
+        OH ->> POE: setConfirmationStatus(Awaiting Confirmation)
+        OCW -->> PO: display follow-up required
+    end

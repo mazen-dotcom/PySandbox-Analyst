@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-04 Review Product Shortage</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-04 Review Product Shortage</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">ShortageReportWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Open the shortage review page for the manager</td><td>ReviewHandler</td></tr>
+      <tr><td>Display the shortage items with required, available, and shortage quantities</td><td></td></tr>
+      <tr><td>Show data warnings for stale or incomplete records</td><td></td></tr>
+      <tr><td>Display the no-shortage message when no purchase action is required</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">ReviewHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Review Product Shortage use case</td><td>ShortageReportWindow</td></tr>
+      <tr><td>Retrieve product and stock records for comparison</td><td>ProductDA, InventoryDA</td></tr>
+      <tr><td>Calculate available stock and compare it with required quantities or reorder levels</td><td>Inventory, ShortageReport</td></tr>
+      <tr><td>Exclude unreliable values and flag incomplete records</td><td>ShortageReport</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Inventory «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold on-hand, reserved, and available quantities per product</td><td>Product</td></tr>
+      <tr><td>Calculate available stock as on-hand minus reserved</td><td></td></tr>
+      <tr><td>Record the last updated date and flag outdated stock</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">ShortageReport «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Calculate the shortage quantity for each product</td><td>Inventory, Product</td></tr>
+      <tr><td>Generate and hold the report date and shortage items</td><td></td></tr>
+      <tr><td>Record that the manager has reviewed the report</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Product «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the product code, name, and reorder level</td><td>Inventory</td></tr>
+      <tr><td>Report whether product data is complete for the shortage calculation</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">ProductDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query products with their reorder levels</td><td>Database</td></tr>
+      <tr><td>Return product records to the handler</td><td>ReviewHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">InventoryDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query on-hand, reserved, and available stock by product</td><td>Database</td></tr>
+      <tr><td>Return inventory records and their last updated dates</td><td>ReviewHandler</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-04</th></tr>
+    <tr><td>Warehouse Department (actor)</td><td>Provides and confirms actual, reserved, and available stock quantities</td></tr>
+    <tr><td>PurchaseRequest «entity»</td><td>Receives the shortage items for purchase-request creation (UC-05)</td></tr>
+    <tr><td>Database</td><td>Stores products, stock records, and shortage data</td></tr>
+  </table>
+</div>
+</body>
+</html>

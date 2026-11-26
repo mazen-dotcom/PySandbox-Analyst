@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    actor LC as Logistics Coordinator
+    actor WH as Warehouse Department
+    box rgb(236,236,255) View Layer
+        participant OTW as OrderTrackingWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant DH as DeliveryHandler «controller»
+        participant SH as Shipment «entity»
+        participant GR as GoodsReceipt «entity»
+        participant DD as DeliveryDiscrepancy «entity»
+        participant POE as PurchaseOrder «entity»
+        participant SPR as SupplierPerformanceReview «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant SHDA as ShipmentDA «dataAccess»
+        participant GRDA as GoodsReceiptDA «dataAccess»
+        participant DDDA as DeliveryDiscrepancyDA «dataAccess»
+    end
+    participant DB as Database
+
+    LC ->> OTW: openTrackOrderDelivery()
+    OTW ->> DH: getActiveOrders()
+    DH ->> SHDA: findActiveShipments()
+    SHDA ->> DB: SELECT active orders with latest status
+    DB -->> SHDA: order and shipment rows
+    SHDA -->> DH: active orders
+    DH -->> OTW: display active orders and latest statuses
+    LC ->> OTW: selectOrder(orderId)
+    OTW ->> DH: getOrderDetails(orderId)
+    DH ->> SH: getTrackingStatus(orderId)
+    SH -->> DH: last known or latest tracking status
+    DH -->> OTW: display order and shipment details
+    LC ->> OTW: updateShipmentProgress(status, expectedDate)
+    OTW ->> DH: recordShipmentProgress(status, expectedDate)
+    DH ->> SH: updateProgress(status, expectedDate)
+    WH ->> OTW: confirmReceipt(actualQuantities, inspectionResult)
+    OTW ->> DH: recordReceipt(orderId, receipt)
+    DH ->> GR: new GoodsReceipt(orderId, actualQuantities, inspectionResult)
+    DH ->> GRDA: save(goodsReceipt)
+    alt Delivery matches the purchase order
+        DH ->> SH: setStatus(Delivered)
+        DH ->> POE: updateOrderStatus(Received)
+    else Late, short, damaged, incorrect or rejected delivery
+        DH ->> DD: new DeliveryDiscrepancy(type, quantity, evidence, owner)
+        DH ->> DDDA: save(discrepancy)
+        DH -->> OTW: discrepancy raised with supplier notification status
+    else Delivery delayed
+        DH ->> SH: setRevisedDate(date)
+        DH -->> OTW: notify Supply Chain Manager of revised date
+    end
+    DH ->> SPR: addVerifiedOutcome(orderId, outcome)

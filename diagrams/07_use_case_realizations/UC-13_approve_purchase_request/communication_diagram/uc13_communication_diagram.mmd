@@ -1,0 +1,41 @@
+flowchart TB
+    APP(["Authorized Approver<br/>«actor»"])
+    FIN(["Finance Department<br/>«actor»"])
+    AW["ApprovalWindow<br/>«view» (View Layer)"]
+    PRH["PurchaseRequestHandler<br/>«controller» (Domain Layer)"]
+    PR["PurchaseRequest<br/>«entity» (Domain Layer)"]
+    RA["RequestApproval<br/>«entity» (Domain Layer)"]
+    BC["BudgetCheck<br/>«entity» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    AL["AuditLog<br/>«entity» (Domain Layer)"]
+    PRDA["PurchaseRequestDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    APP -- "1: openPendingRequests()" --> AW
+    AW -- "2: getPendingRequests(approverId)" --> PRH
+    PRH -- "3: findPendingRequests(approverId)" --> PRDA
+    PRDA -- "4: SELECT requests Pending Approval" --> DB
+    APP -- "5: selectRequest(requestId)" --> AW
+    AW -- "6: getRequestDetails(requestId)" --> PRH
+    FIN -- "7: recordBudgetDecision(requestValue, result)" --> BC
+    PRH -- "8: verifyNotRequester(approverId)" --> RA
+    PRH -- "9: getAuthorityLevel(requestValue)" --> PP
+    APP -- "10: submitDecision(decision, rationale)" --> AW
+    AW -- "11: recordDecision(requestId, decision)" --> PRH
+    PRH -- "12: recordDecision(decision, rationale, timestamp)" --> RA
+    PRH -- "13: setStatus(Approved for Sourcing)" --> PR
+    PRH -- "14: save(purchaseRequest)" --> PRDA
+    PRDA -- "15: UPDATE request status and approval" --> DB
+    PRH -- "16: record(decision, user, timestamp)" --> AL
+    PRH -- "17: setStatus(Returned)" --> PR
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class AW view
+    class PRH ctrl
+    class PR,RA,BC,PP,AL ent
+    class PRDA da
+    class DB db

@@ -1,0 +1,46 @@
+flowchart TB
+    PO(["Purchasing Officer<br/>«actor»"])
+    FIN(["Finance Department<br/>«actor»"])
+    APP(["Authorized Approver<br/>«actor»"])
+    POW["PurchaseOrderWindow<br/>«view» (View Layer)"]
+    OH["OrderHandler<br/>«controller» (Domain Layer)"]
+    POE["PurchaseOrder<br/>«entity» (Domain Layer)"]
+    QU["Quotation<br/>«entity» (Domain Layer)"]
+    BC["BudgetCheck<br/>«entity» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    RA["RequestApproval<br/>«entity» (Domain Layer)"]
+    QDA["QuotationDA<br/>«dataAccess» (Data Access Layer)"]
+    PODA["PurchaseOrderDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    PO -- "1: selectCreatePurchaseOrder(quotationId)" --> POW
+    POW -- "2: getOrderContext(quotationId)" --> OH
+    OH -- "3: findApprovedQuotation(quotationId)" --> QDA
+    QDA -- "4: SELECT approved quotation and contract" --> DB
+    FIN -- "5: confirmBudget(orderValue)" --> BC
+    PO -- "6: enterDeliveryInstructions(instructions)" --> POW
+    POW -- "7: createPurchaseOrder(details)" --> OH
+    OH -- "8: new PurchaseOrder(details)" --> POE
+    OH -- "9: compareTerms(orderLines, deliveryTerms)" --> QU
+    OH -- "10: getAuthorityLevel(orderValue)" --> PP
+    OH -- "11: setStatus(Pending Approval)" --> POE
+    OH -- "12: save(purchaseOrder)" --> PODA
+    PODA -- "13: INSERT purchase order with reference" --> DB
+    OH -- "14: new RequestApproval(orderId, level)" --> RA
+    APP -- "15: approveOrder(orderId, decision)" --> POW
+    POW -- "16: recordApproval(orderId, decision)" --> OH
+    OH -- "17: recordDecision(approver, timestamp)" --> RA
+    PO -- "18: dispatchPurchaseOrder(orderId)" --> POW
+    POW -- "19: dispatchOrder(orderId)" --> OH
+    OH -- "20: markDispatched(dispatchDate)" --> POE
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class POW view
+    class OH ctrl
+    class POE,QU,BC,PP,RA ent
+    class QDA,PODA da
+    class DB db

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-06 Send Request for Quotation</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-06 Send Request for Quotation (RFQ)</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">RFQWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display the approved purchase request and eligible suppliers</td><td>SourcingHandler</td></tr>
+      <tr><td>Collect selected suppliers, quotation deadline, and commercial requirements</td><td></td></tr>
+      <tr><td>Show missing-item and insufficient-supplier messages that block dispatch</td><td></td></tr>
+      <tr><td>Display the RFQ reference and dispatch status</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">SourcingHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Send RFQ use case</td><td>RFQWindow</td></tr>
+      <tr><td>Load the approved purchase request and the minimum quotation count</td><td>PurchaseRequestDA, ProcurementPolicy</td></tr>
+      <tr><td>Create the RFQ and its items from the selection</td><td>RFQ, RFQItem</td></tr>
+      <tr><td>Dispatch the RFQ to selected suppliers and record recipients</td><td>RFQDispatch, RFQDA</td></tr>
+      <tr><td>Block dispatch when rules or required details are not met</td><td>RFQ</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">ProcurementPolicy «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Return the required number of quotations for a given amount</td><td>SourcingHandler</td></tr>
+      <tr><td>Hold the approved bidding-threshold and sourcing rules</td><td>RFQ</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">RFQ «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold RFQ reference, deadline, commercial requirements, and status</td><td>RFQItem, RFQDispatch</td></tr>
+      <tr><td>Generate the RFQ document</td><td></td></tr>
+      <tr><td>Validate sourcing rules and required fields before dispatch</td><td>ProcurementPolicy</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">RFQItem «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the product, quantity, technical specifications, and quality requirements</td><td>RFQ, Product</td></tr>
+      <tr><td>Validate that specifications and quantities are complete</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">RFQDispatch «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Record dispatch date, recipient supplier, and dispatch status</td><td>RFQ, Supplier</td></tr>
+      <tr><td>Record failed dispatches so they can be retried</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">RFQDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Insert the RFQ, its items, and its dispatch records</td><td>Database</td></tr>
+      <tr><td>Return the saved RFQ reference to the handler</td><td>SourcingHandler</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-06</th></tr>
+    <tr><td>Manufacturing Department (actor)</td><td>Confirms technical specifications and quality requirements for suppliers to quote against</td></tr>
+    <tr><td>PurchaseRequest «entity»</td><td>Supplies the approved purchase requirement (UC-05, UC-13)</td></tr>
+    <tr><td>Supplier «entity»</td><td>Supplies eligibility status; receives the RFQ</td></tr>
+    <tr><td>Database</td><td>Stores purchase requests, suppliers, RFQs, and dispatch records</td></tr>
+  </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+    actor SCM as Supply Chain Manager
+    actor WH as Warehouse Department
+    box rgb(236,236,255) View Layer
+        participant SRW as ShortageReportWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant RH as ReviewHandler «controller»
+        participant INV as Inventory «entity»
+        participant SR as ShortageReport «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PDA as ProductDA «dataAccess»
+        participant IDA as InventoryDA «dataAccess»
+    end
+    participant DB as Database
+
+    SCM ->> SRW: openReviewProductShortage()
+    SRW ->> RH: loadShortageReport()
+    RH ->> PDA: findProducts()
+    PDA ->> DB: SELECT products with reorder levels
+    DB -->> PDA: product rows
+    PDA -->> RH: product list
+    RH ->> IDA: findStockByProduct()
+    IDA ->> DB: SELECT on-hand, reserved, available quantities
+    DB -->> IDA: stock rows
+    IDA -->> RH: inventory records
+    WH -->> SCM: confirm on-hand, reserved, and available stock
+    RH ->> INV: calculateAvailableStock()
+    opt Stock data outdated or product data incomplete
+        RH -->> SRW: flag records and exclude unreliable values
+        SRW -->> SCM: display data warning
+    end
+    RH ->> SR: calculateShortage(requiredQuantity or reorderLevel)
+    alt No shortages found
+        RH -->> SRW: no purchase action currently required
+        SRW -->> SCM: display no shortage message
+    else Shortages found
+        RH ->> SR: generateShortageReport()
+        RH -->> SRW: shortage items and quantities
+        SRW -->> SCM: display shortage report
+        SCM ->> SRW: reviewShortageReport()
+        SRW ->> RH: reviewShortage(report)
+        RH ->> SR: reviewShortage()
+    end

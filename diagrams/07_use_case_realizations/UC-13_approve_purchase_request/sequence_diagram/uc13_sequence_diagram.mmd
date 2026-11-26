@@ -1,0 +1,50 @@
+sequenceDiagram
+    autonumber
+    actor APP as Authorized Approver
+    actor FIN as Finance Department
+    box rgb(236,236,255) View Layer
+        participant AW as ApprovalWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant PRH as PurchaseRequestHandler «controller»
+        participant PR as PurchaseRequest «entity»
+        participant RA as RequestApproval «entity»
+        participant BC as BudgetCheck «entity»
+        participant PP as ProcurementPolicy «entity»
+        participant AL as AuditLog «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PRDA as PurchaseRequestDA «dataAccess»
+    end
+    participant DB as Database
+
+    APP ->> AW: openPendingRequests()
+    AW ->> PRH: getPendingRequests(approverId)
+    PRH ->> PRDA: findPendingRequests(approverId)
+    PRDA ->> DB: SELECT requests with status Pending Approval
+    DB -->> PRDA: pending request rows
+    PRDA -->> PRH: pending requests
+    PRH -->> AW: display pending requests
+    APP ->> AW: selectRequest(requestId)
+    AW ->> PRH: getRequestDetails(requestId)
+    FIN ->> BC: recordBudgetDecision(requestValue, result)
+    PRH ->> RA: verifyNotRequester(approverId)
+    PRH ->> PP: getAuthorityLevel(requestValue)
+    PP -->> PRH: required authority level
+    PRH -->> AW: display estimate, justification and approval history
+    APP ->> AW: submitDecision(decision, rationale)
+    AW ->> PRH: recordDecision(requestId, decision, rationale)
+    alt Request value above approver authority
+        PRH -->> AW: route to higher authority
+        AW -->> APP: display routing message
+    else Within authority and budget available
+        PRH ->> RA: recordDecision(decision, rationale, timestamp)
+        PRH ->> PR: setStatus(Approved for Sourcing)
+        PRH ->> PRDA: save(purchaseRequest)
+        PRDA ->> DB: UPDATE request status and approval record
+        PRH ->> AL: record(decision, user, timestamp)
+        AW -->> APP: display Approved for Sourcing
+    else Budget insufficient or request incomplete
+        PRH ->> PR: setStatus(Returned)
+        AW -->> APP: display return to Supply Chain Manager
+    end

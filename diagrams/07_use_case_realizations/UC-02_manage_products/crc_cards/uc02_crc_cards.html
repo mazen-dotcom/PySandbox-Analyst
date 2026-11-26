@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-02 Manage Products</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-02 Manage Products</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">ProductWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display the product list and search field</td><td>ProductHandler</td></tr>
+      <tr><td>Collect product code, name, specifications, materials, and quality details</td><td></td></tr>
+      <tr><td>Show duplicate-code warnings and highlight invalid or missing fields</td><td></td></tr>
+      <tr><td>Confirm that product data has been saved</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">ProductHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Manage Products use case</td><td>ProductWindow</td></tr>
+      <tr><td>Load the product list and search products by code</td><td>ProductDA</td></tr>
+      <tr><td>Validate required fields and check for duplicate product codes</td><td>Product, ProductDA</td></tr>
+      <tr><td>Route purchasing-affecting changes for independent approval</td><td>MasterDataChange</td></tr>
+      <tr><td>Keep the previously approved specification when a change is rejected</td><td>ProductDA</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Product «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold product code, name, description, and reorder level</td><td>Inventory</td></tr>
+      <tr><td>Hold technical specifications, material requirements, and quality details</td><td></td></tr>
+      <tr><td>Validate that required product data is complete</td><td></td></tr>
+      <tr><td>Hold product status (active or inactive)</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">MasterDataChange «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Record the entity type, changed fields, old and new values, and timestamp</td><td>User</td></tr>
+      <tr><td>Record the requester and the independent approver</td><td>User</td></tr>
+      <tr><td>Approve or reject the change before it takes effect</td><td>ProductHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">ProductDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query products, optionally filtered by product code</td><td>Database</td></tr>
+      <tr><td>Check whether a product code already exists</td><td>Database</td></tr>
+      <tr><td>Insert or update the product record</td><td>Database</td></tr>
+      <tr><td>Return product records and save results to the handler</td><td>ProductHandler</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-02</th></tr>
+    <tr><td>Manufacturing Department (actor)</td><td>Provides or confirms technical specifications, materials, and quality details</td></tr>
+    <tr><td>User «entity»</td><td>Identifies the requester and the independent approver of master-data changes</td></tr>
+    <tr><td>Inventory «entity»</td><td>Uses the product code to link stock records</td></tr>
+    <tr><td>Database</td><td>Stores product records, duplicate checks, and change history</td></tr>
+  </table>
+</div>
+</body>
+</html>

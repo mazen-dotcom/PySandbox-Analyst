@@ -1,0 +1,39 @@
+flowchart TB
+    PO(["Purchasing Officer<br/>«actor»"])
+    QW["QuotationWindow<br/>«view» (View Layer)"]
+    SH["SourcingHandler<br/>«controller» (Domain Layer)"]
+    RFQ["RFQ<br/>«entity» (Domain Layer)"]
+    Q["Quotation<br/>«entity» (Domain Layer)"]
+    QD["QuotationDocument<br/>«entity» (Domain Layer)"]
+    RDA["RFQDA<br/>«dataAccess» (Data Access Layer)"]
+    QDA["QuotationDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    PO -- "1: openQuotationRegistration()" --> QW
+    QW -- "2: loadIssuedRFQs()" --> SH
+    SH -- "3: findIssuedRFQs()" --> RDA
+    RDA -- "4: SELECT RFQs with response status" --> DB
+    PO -- "5: selectRFQAndSupplier(rfqReference, supplier)" --> QW
+    QW -- "6: openQuotationEntry(rfq, supplier)" --> SH
+    SH -- "7: validateRFQ()" --> RFQ
+    SH -- "8: findQuotation(rfq, supplier)" --> QDA
+    QDA -- "9: SELECT existing quotation" --> DB
+    PO -- "10: enterQuotationDetails(prices, validity, deliveryTerms)" --> QW
+    PO -- "11: uploadQuotationDocument(file)" --> QW
+    QW -- "12: registerQuotation(details, documents)" --> SH
+    SH -- "13: validateQuotation()" --> Q
+    SH -- "14: uploadDocument(file)" --> QD
+    SH -- "15: saveQuotation(quotation, documents)" --> QDA
+    QDA -- "16: INSERT quotation linked to RFQ and supplier" --> DB
+    SH -- "17: updateRFQStatus(response received)" --> RFQ
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class QW view
+    class SH ctrl
+    class RFQ,Q,QD ent
+    class RDA,QDA da
+    class DB db

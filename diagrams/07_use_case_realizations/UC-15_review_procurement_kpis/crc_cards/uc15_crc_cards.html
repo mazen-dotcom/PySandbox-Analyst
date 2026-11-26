@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-15 Review Procurement KPIs</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-15 Review Procurement KPIs</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">KPIWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display the KPI report for the period with values, targets and variances</td><td>ReviewHandler</td></tr>
+      <tr><td>Collect variance explanations from the KPI owner</td><td>ReviewHandler</td></tr>
+      <tr><td>Collect the Finance review of the savings baseline</td><td>ReviewHandler</td></tr>
+      <tr><td>Collect the approver review decision</td><td>ReviewHandler</td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">ReviewHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Review Procurement KPIs use case</td><td>KPIWindow</td></tr>
+      <tr><td>Retrieve approved definitions and targets</td><td>ProcurementPolicy</td></tr>
+      <tr><td>Retrieve measured inputs for the reporting period</td><td>KPIRecordDA</td></tr>
+      <tr><td>Create the KPIRecord and calculate the four KPIs</td><td>KPIRecord</td></tr>
+      <tr><td>Record explanations, the Finance review and the approver decision</td><td>KPIRecord</td></tr>
+      <tr><td>Escalate reviews not completed by the due date</td><td>KPIRecord</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">KPIRecord «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Calculate savings, on-time delivery, supplier rating and order cycle time</td><td>ProcurementPolicy</td></tr>
+      <tr><td>Flag variances against approved targets</td><td>ProcurementPolicy</td></tr>
+      <tr><td>Hold explanations, review status and reviewer</td><td>User</td></tr>
+      <tr><td>Exclude values with missing data and report the gap</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">ProcurementPolicy «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold approved KPI definitions, data sources, targets and frequency</td><td>ReviewHandler</td></tr>
+      <tr><td>Refuse publication of a KPI whose definition is not approved</td><td>KPIRecord</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">KPIRecordDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query orders, deliveries, savings and ratings for the period</td><td>Database</td></tr>
+      <tr><td>Save KPI records with their reviewed status</td><td>Database</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-15</th></tr>
+    <tr><td>PurchaseOrder «entity»</td><td>Supplies order cycle-time data (UC-09)</td></tr>
+    <tr><td>Shipment «entity»</td><td>Supplies on-time delivery data (UC-11)</td></tr>
+    <tr><td>SupplierPerformanceReview «entity»</td><td>Supplies the supplier rating (UC-14)</td></tr>
+    <tr><td>User «entity»</td><td>Identifies the KPI owner and the approver</td></tr>
+    <tr><td>Database</td><td>Stores KPI inputs and records</td></tr>
+  </table>
+</div>
+</body>
+</html>

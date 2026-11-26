@@ -1,0 +1,188 @@
+classDiagram
+direction LR
+
+class PurchaseOrderWindow {
+  <<view>>
+  +displayOrderForm() void
+  +dispatchOrder(PurchaseOrder order) void
+  +recordConfirmation(DeliveryConfirmation confirmation) void
+}
+
+class OrderTrackingWindow {
+  <<view>>
+  +displayActiveOrders() void
+  +updateShipment(Shipment shipment) void
+}
+
+class GoodsReceiptWindow {
+  <<view>>
+  +displayReceiptForm() void
+  +recordReceipt(GoodsReceipt receipt) void
+}
+
+class OrderHandler {
+  <<controller>>
+  +createPurchaseOrder(Quotation quotation) PurchaseOrder
+  +dispatchPurchaseOrder(PurchaseOrder order) void
+  +recordDeliveryConfirmation(DeliveryConfirmation confirmation) void
+  +viewActiveOrders() PurchaseOrder[]
+}
+
+class DeliveryHandler {
+  <<controller>>
+  +updateShipmentStatus(Shipment shipment, String status) void
+  +recordDelay(Shipment shipment, Date revisedDate) void
+  +recordGoodsReceipt(GoodsReceipt receipt) void
+  +raiseDeliveryDiscrepancy(GoodsReceipt receipt) void
+}
+
+class PurchaseOrderDA {
+  <<dataAccess>>
+  +findById(int orderId) PurchaseOrder
+  +save(PurchaseOrder order) void
+  +updateStatus(int orderId, String status) void
+}
+
+class GoodsReceiptDA {
+  <<dataAccess>>
+  +findByOrder(int orderId) GoodsReceipt[]
+  +save(GoodsReceipt receipt) void
+}
+
+class PurchasingOfficer {
+  +createRFQ(PurchaseRequest request) RFQ
+  +selectEligibleSuppliers(RFQ rfq) Supplier[]
+  +dispatchRFQ(RFQ rfq, Supplier[] suppliers) void
+  +registerQuotation(Quotation quotation) void
+  +uploadQuotationDocument(Quotation quotation, QuotationDocument document) void
+  +createPurchaseOrder(Quotation quotation) PurchaseOrder
+  +dispatchPurchaseOrder(PurchaseOrder order) void
+  +recordSupplierConfirmation(PurchaseOrder order, DeliveryConfirmation confirmation) void
+  +submitPaymentNotification(PurchaseOrder order, InvoiceDocument invoice) PaymentNotification
+}
+
+class LogisticsCoordinator {
+  +viewActivePurchaseOrders() PurchaseOrder[]
+  +monitorShipment(Shipment shipment) void
+  +updateShipmentStatus(Shipment shipment, String status) void
+  +recordDelay(Shipment shipment, Date revisedDate) void
+  +recordDeliveryOutcome(GoodsReceipt receipt) void
+  +raiseDeliveryDiscrepancy(GoodsReceipt receipt, DeliveryDiscrepancy discrepancy) void
+}
+
+class PurchaseOrder {
+  <<entity>>
+  -int orderId
+  -String orderReference
+  -Date orderDate
+  -Date dispatchDate
+  -String deliveryInstructions
+  -String status
+  -Decimal totalAmount
+  -String approvalStatus
+  +createPurchaseOrder() void
+  +generateOrderDocument() void
+  +dispatchPurchaseOrder() void
+  +updateOrderStatus(String status) void
+  +validateOrder() Boolean
+  +validateAgainstContract() Boolean
+  +checkAuthorityLimit() Boolean
+}
+
+class PurchaseOrderItem {
+  <<entity>>
+  -int orderItemId
+  -int quantity
+  -Decimal unitPrice
+  -Decimal totalPrice
+  +calculateTotalPrice() Decimal
+  +updateQuantity(int quantity) void
+}
+
+class Contract {
+  <<entity>>
+  -int contractId
+  -String contractReference
+  -Date startDate
+  -Date endDate
+  -String status
+  +validateTerms(PurchaseOrder order) Boolean
+}
+
+class DeliveryConfirmation {
+  <<entity>>
+  -int confirmationId
+  -Date confirmationDate
+  -int requestedQuantity
+  -int confirmedQuantity
+  -Date agreedDeliveryDate
+  -String availabilityStatus
+  -String notes
+  +recordAvailability() void
+  +confirmDeliveryDate() void
+  +updateConfirmation() void
+}
+
+class Shipment {
+  <<entity>>
+  -int shipmentId
+  -String trackingNumber
+  -String shipmentStatus
+  -Date expectedDeliveryDate
+  -Date actualDeliveryDate
+  +trackShipment() void
+  +updateShipmentStatus() void
+  +recordDelay() void
+}
+
+class GoodsReceipt {
+  <<entity>>
+  -int receiptId
+  -Date receiptDate
+  -int receivedQuantity
+  -int discrepancyQuantity
+  -String receiptStatus
+  -String inspectionResult
+  -String notes
+  +recordGoodsReceipt() void
+  +confirmReceivedQuantity() void
+  +recordDiscrepancy() void
+}
+
+class DeliveryDiscrepancy {
+  <<entity>>
+  -int discrepancyId
+  -String type
+  -int affectedQuantity
+  -String supplierNotificationStatus
+  -String resolutionStatus
+  -String resolutionNotes
+  +recordDiscrepancy() void
+  +resolveDiscrepancy() void
+}
+
+PurchasingOfficer --> PurchaseOrderWindow : uses
+LogisticsCoordinator --> OrderTrackingWindow : uses
+PurchaseOrderWindow --> OrderHandler : calls
+OrderTrackingWindow --> OrderHandler : calls
+OrderTrackingWindow --> DeliveryHandler : calls
+GoodsReceiptWindow --> DeliveryHandler : calls
+PurchasingOfficer --> PurchaseOrder : creates
+PurchaseOrder --> PurchaseOrderItem : contains
+PurchaseOrder --> Contract : governedBy
+PurchaseOrder --> DeliveryConfirmation : has confirmations
+PurchaseOrder --> Shipment : has
+PurchaseOrder --> GoodsReceipt : has
+LogisticsCoordinator --> Shipment : monitors
+LogisticsCoordinator --> GoodsReceipt : records outcome
+PurchasingOfficer --> Shipment : records
+GoodsReceipt --> DeliveryDiscrepancy : records
+OrderHandler --> PurchaseOrder : uses
+OrderHandler --> DeliveryConfirmation : uses
+DeliveryHandler --> Shipment : uses
+DeliveryHandler --> GoodsReceipt : uses
+DeliveryHandler --> DeliveryDiscrepancy : uses
+OrderHandler --> PurchaseOrderDA : accesses
+DeliveryHandler --> GoodsReceiptDA : accesses
+PurchaseOrderDA --> PurchaseOrder : maps
+GoodsReceiptDA --> GoodsReceipt : maps

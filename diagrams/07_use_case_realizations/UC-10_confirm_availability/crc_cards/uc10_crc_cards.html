@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-10 Confirm Availability and Delivery Date</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-10 Confirm Availability and Delivery Date</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">OrderConfirmationWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display purchase orders awaiting confirmation</td><td>OrderHandler</td></tr>
+      <tr><td>Collect supplier availability, confirmed quantity and proposed date</td><td>OrderHandler</td></tr>
+      <tr><td>Display the confirmed delivery date, shortfall or follow-up message</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">OrderHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Confirm Availability and Delivery Date use case</td><td>OrderConfirmationWindow</td></tr>
+      <tr><td>Retrieve dispatched orders without a confirmed delivery date</td><td>PurchaseOrderDA</td></tr>
+      <tr><td>Create a DeliveryConfirmation from the supplier response</td><td>DeliveryConfirmation</td></tr>
+      <tr><td>Set the PurchaseOrder confirmation status</td><td>PurchaseOrder</td></tr>
+      <tr><td>Record a quantity shortfall or revised date for follow-up</td><td>DeliveryConfirmation</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">PurchaseOrder «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the confirmation status: Awaiting Confirmation or Confirmed</td><td>DeliveryConfirmation</td></tr>
+      <tr><td>Hold the dispatch date and supplier reference</td><td>Supplier</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">DeliveryConfirmation «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold availability, confirmed quantity and agreed delivery date</td><td>PurchaseOrder</td></tr>
+      <tr><td>Record a shortfall or revised date for follow-up</td><td></td></tr>
+      <tr><td>Hold the confirmation timestamp</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">PurchaseOrderDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query dispatched orders without a confirmed delivery date</td><td>Database</td></tr>
+      <tr><td>Save the updated order confirmation status</td><td>Database</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">DeliveryConfirmationDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Insert the availability and agreed delivery date</td><td>Database</td></tr>
+      <tr><td>Return the saved confirmation reference</td><td>OrderHandler</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-10</th></tr>
+    <tr><td>Supplier «entity»</td><td>Provides availability and the proposed delivery date</td></tr>
+    <tr><td>Shipment «entity»</td><td>Receives the confirmed date for order tracking (UC-11)</td></tr>
+    <tr><td>User «entity»</td><td>Identifies the Purchasing Officer</td></tr>
+    <tr><td>Database</td><td>Stores confirmations and returns query results</td></tr>
+  </table>
+</div>
+</body>
+</html>

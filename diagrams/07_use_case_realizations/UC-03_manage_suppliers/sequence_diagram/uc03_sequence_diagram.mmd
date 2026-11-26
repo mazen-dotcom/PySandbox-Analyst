@@ -1,0 +1,50 @@
+sequenceDiagram
+    autonumber
+    actor SSS as Strategic Sourcing Specialist
+    actor LEG as Legal Department
+    box rgb(236,236,255) View Layer
+        participant SW as SupplierWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant SH as SupplierHandler «controller»
+        participant SUP as Supplier «entity»
+        participant SD as SupplierDocument «entity»
+        participant MDC as MasterDataChange «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant SDA as SupplierDA «dataAccess»
+    end
+    participant DB as Database
+
+    SSS ->> SW: openSupplierManagement()
+    SW ->> SH: loadSuppliers()
+    SH ->> SDA: findSuppliers()
+    SDA ->> DB: SELECT suppliers with eligibility status
+    SDA -->> SH: supplier list
+    SH -->> SW: display suppliers and status
+    SSS ->> SW: selectAdd, Update, or Deactivate and enterSupplierDetails(details)
+    SSS ->> SW: uploadDocuments(files)
+    SW ->> SH: saveSupplier(details, documents)
+    SH ->> SUP: validateSupplier()
+    SH ->> SDA: checkDuplicateSupplier(supplierName, email)
+    SDA ->> DB: SELECT matching suppliers
+    alt Mandatory information missing or duplicate supplier
+        SH -->> SW: request completion or duplicate warning
+        SW -->> SSS: display warning
+    else Information valid
+        SH ->> SD: verifyDocument()
+        LEG -->> SSS: legal compliance decision recorded
+        opt Bank-detail or master-data change
+            SH ->> MDC: new MasterDataChange(oldValues, newValues)
+            SH ->> MDC: routeForIndependentReview(reviewer)
+        end
+        alt Documents invalid or bank change not verified
+            SH -->> SW: supplier remains Pending
+            SW -->> SSS: display Pending status
+        else Documents and changes verified
+            SH ->> SDA: saveSupplier(supplier)
+            SDA ->> DB: INSERT or UPDATE supplier with audit values
+            SH -->> SW: supplier status Approved
+            SW -->> SSS: display updated supplier status
+        end
+    end

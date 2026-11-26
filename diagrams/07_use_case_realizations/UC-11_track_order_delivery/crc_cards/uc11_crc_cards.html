@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-11 Track Order / Delivery</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-11 Track Order / Delivery</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">OrderTrackingWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display active orders and their latest statuses</td><td>DeliveryHandler</td></tr>
+      <tr><td>Display order and shipment details</td><td>DeliveryHandler</td></tr>
+      <tr><td>Collect shipment progress and receipt results</td><td>DeliveryHandler</td></tr>
+      <tr><td>Display discrepancy and delay notices</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">DeliveryHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Track Order / Delivery use case</td><td>OrderTrackingWindow</td></tr>
+      <tr><td>Retrieve active shipments</td><td>ShipmentDA</td></tr>
+      <tr><td>Record shipment progress and revised dates</td><td>Shipment</td></tr>
+      <tr><td>Create GoodsReceipt from warehouse-confirmed quantities</td><td>GoodsReceipt</td></tr>
+      <tr><td>Create DeliveryDiscrepancy for late, short, damaged or rejected deliveries</td><td>DeliveryDiscrepancy</td></tr>
+      <tr><td>Update the PurchaseOrder delivery status</td><td>PurchaseOrder</td></tr>
+      <tr><td>Feed verified delivery outcomes to supplier performance</td><td>SupplierPerformanceReview</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Shipment «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold tracking status, expected date and revised date</td><td>PurchaseOrder</td></tr>
+      <tr><td>Set Delivered status when receipt matches the order</td><td>GoodsReceipt</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">GoodsReceipt «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold received quantities, inspection results and receipt date</td><td>PurchaseOrder</td></tr>
+      <tr><td>Report quantity variance against the purchase order</td><td>DeliveryDiscrepancy</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">DeliveryDiscrepancy «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold type, quantity, evidence, owner and supplier notification status</td><td>GoodsReceipt</td></tr>
+      <tr><td>Remain open until resolved and block payment for affected quantities</td><td>PaymentNotification</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">ShipmentDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Query active orders with their latest shipment status</td><td>Database</td></tr>
+      <tr><td>Save shipment progress and revised dates</td><td>Database</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">GoodsReceiptDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Insert the goods receipt with actual quantities and inspection results</td><td>Database</td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">DeliveryDiscrepancyDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Insert and query open delivery discrepancies</td><td>Database</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-11</th></tr>
+    <tr><td>PurchaseOrder «entity»</td><td>Holds the order status updated after delivery</td></tr>
+    <tr><td>SupplierPerformanceReview «entity»</td><td>Receives verified delivery outcomes (UC-14)</td></tr>
+    <tr><td>PaymentNotification «entity»</td><td>Blocked by open discrepancies on affected quantities (UC-12)</td></tr>
+    <tr><td>Database</td><td>Stores shipments, receipts and discrepancies</td></tr>
+  </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,56 @@
+sequenceDiagram
+    autonumber
+    actor PO as Purchasing Officer
+    actor MFG as Manufacturing Department
+    box rgb(236,236,255) View Layer
+        participant RW as RFQWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant SH as SourcingHandler «controller»
+        participant PP as ProcurementPolicy «entity»
+        participant RFQ as RFQ «entity»
+        participant RI as RFQItem «entity»
+        participant RD as RFQDispatch «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PRDA as PurchaseRequestDA «dataAccess»
+        participant SDA as SupplierDA «dataAccess»
+        participant RDA as RFQDA «dataAccess»
+    end
+    participant DB as Database
+
+    PO ->> RW: openRFQFunction()
+    RW ->> SH: loadApprovedRequest()
+    SH ->> PRDA: findApprovedRequest()
+    PRDA ->> DB: SELECT approved purchase request
+    DB -->> PRDA: request row
+    PRDA -->> SH: approved purchase request
+    SH ->> PP: getRequiredQuoteCount(estimatedTotal)
+    PP -->> SH: sourcing method and minimum quotations
+    SH ->> SDA: findEligibleSuppliers(productCodes)
+    SDA ->> DB: SELECT eligible suppliers
+    SDA -->> SH: eligible suppliers
+    SH -->> RW: display eligible suppliers and minimum quotations
+    MFG -->> PO: confirm technical specifications and quality requirements
+    PO ->> RW: selectSuppliers, quotationDeadline, commercialRequirements
+    RW ->> SH: createRFQ(request, selection)
+    SH ->> RFQ: new RFQ(request, deadline, commercialRequirements)
+    SH ->> RI: new RFQItem(product, quantity, specifications)
+    SH ->> RFQ: validateSourcingRules()
+    alt Specifications or quantities missing, or too few suppliers without approved exception
+        SH -->> RW: prevent dispatch and list missing items
+        RW -->> PO: request completion
+    else Ready to dispatch
+        SH ->> RFQ: generateRFQDocument()
+        PO ->> RW: sendRFQ()
+        RW ->> SH: dispatchRFQ(rfq, suppliers)
+        SH ->> RD: recordDispatch(recipients)
+        SH ->> RDA: saveRFQ(rfq, dispatches)
+        RDA ->> DB: INSERT RFQ, items, and dispatch records
+        alt Dispatch fails
+            SH -->> RW: failure recorded, retry allowed
+        else Dispatched
+            SH -->> RW: RFQ reference and status Dispatched
+            RW -->> PO: display dispatch confirmation
+        end
+    end

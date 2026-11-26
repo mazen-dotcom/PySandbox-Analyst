@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+    actor APP as Authorized Approver
+    actor KO as KPI Owner
+    actor FIN as Finance Department
+    box rgb(236,236,255) View Layer
+        participant KW as KPIWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant RH as ReviewHandler «controller»
+        participant PP as ProcurementPolicy «entity»
+        participant KR as KPIRecord «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant KPIDA as KPIRecordDA «dataAccess»
+    end
+    participant DB as Database
+
+    APP ->> KW: openKPIReport(period)
+    KW ->> RH: getKPIReport(period)
+    RH ->> PP: getKPIDefinitions()
+    PP -->> RH: approved definitions and targets
+    RH ->> KPIDA: findKPIInputs(period)
+    KPIDA ->> DB: SELECT orders, deliveries, savings and ratings for period
+    KPIDA -->> RH: measured inputs
+    RH ->> KR: new KPIRecord(period, measuredValues)
+    KR ->> KR: calculateKPIs(approvedDefinitions)
+    RH ->> KR: compareWithTargets(targets)
+    RH -->> KW: display KPI values and flagged variances
+    KO ->> KW: provideVarianceExplanation(kpi, explanation)
+    KW ->> RH: recordExplanation(kpi, explanation)
+    RH ->> KR: addExplanation(kpi, explanation)
+    FIN ->> KW: reviewSavingsBaseline(baseline)
+    KW ->> RH: recordFinanceReview(baseline)
+    APP ->> KW: submitReviewDecision(decision)
+    KW ->> RH: recordReviewDecision(decision)
+    RH ->> KR: setReviewedStatus(decision, reviewer, timestamp)
+    RH ->> KPIDA: save(kpiRecords)
+    KPIDA ->> DB: INSERT KPI records with review status
+    alt Data missing or KPI definition not approved
+        RH ->> KR: markExcluded(gap)
+        KW -->> APP: report gap or block publication
+    else Review not completed by due date
+        RH ->> KR: escalate()
+        KW -->> APP: escalation notice
+    end

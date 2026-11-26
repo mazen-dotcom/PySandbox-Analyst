@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CRC Cards - UC-01 Log In</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; margin: 0; padding: 28px; width: 1500px; color: #131300; }
+  h1 { font-size: 24px; margin: 0 0 4px 0; }
+  .sub { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .card { border: 2px solid #333; border-radius: 6px; background: #fff; overflow: hidden; }
+  .head { padding: 8px 10px; border-bottom: 2px solid #333; }
+  .head .name { font-weight: bold; font-size: 15px; }
+  .head .layer { font-size: 12px; color: #444; margin-top: 2px; }
+  .view .head { background: #ECECFF; }
+  .ctrl .head { background: #FFFFDE; }
+  .ent .head { background: #E8F4E8; }
+  .da .head { background: #FDE9E7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 5px 8px; background: #f2f2f2; border-bottom: 1px solid #999; }
+  td { padding: 5px 8px; vertical-align: top; border-bottom: 1px solid #ddd; }
+  th:first-child, td:first-child { border-right: 1px solid #999; width: 60%; }
+  .support { margin-top: 22px; }
+  .support h2 { font-size: 16px; margin: 0 0 8px 0; }
+  .support table { width: auto; min-width: 100%; }
+  .support th, .support td { border: 1px solid #aaa; }
+  .support td { font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>CRC Cards: UC-01 Log In</h1>
+<div class="sub">Class, Responsibilities and Collaborators. Layer and stereotype shown in each header.</div>
+
+<div class="grid">
+
+  <div class="card view">
+    <div class="head"><div class="name">LoginWindow «view»</div><div class="layer">View Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Display the login form with email/username and password fields</td><td></td></tr>
+      <tr><td>Submit the entered credentials when Log In is selected</td><td>UserHandler</td></tr>
+      <tr><td>Display the home page for the user's role</td><td></td></tr>
+      <tr><td>Display credential, access denied, and technical error messages</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ctrl">
+    <div class="head"><div class="name">UserHandler «controller»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Coordinate the Log In use case</td><td>LoginWindow</td></tr>
+      <tr><td>Retrieve the user record for the entered username</td><td>UserDA</td></tr>
+      <tr><td>Validate credentials and account status</td><td>User</td></tr>
+      <tr><td>Resolve the role and permissions after successful validation</td><td>Role</td></tr>
+      <tr><td>Record successful, failed, and denied attempts in the audit log</td><td>UserDA</td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">User «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold identity, username, email, and active status</td><td>Role</td></tr>
+      <tr><td>Validate the password and confirm the account is active</td><td></td></tr>
+      <tr><td>Report whether the user may access the system</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card ent">
+    <div class="head"><div class="name">Role «entity»</div><div class="layer">Domain Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Hold the role assigned to a user</td><td>Permission</td></tr>
+      <tr><td>Check whether the role grants access to the requested home page</td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="card da">
+    <div class="head"><div class="name">UserDA «dataAccess»</div><div class="layer">Data Access Layer</div></div>
+    <table>
+      <tr><th>Responsibilities</th><th>Collaborators</th></tr>
+      <tr><td>Find the user by username or email</td><td>Database</td></tr>
+      <tr><td>Save audit log entries for login outcomes</td><td>Database</td></tr>
+      <tr><td>Report database unavailability to the handler</td><td>UserHandler</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="support">
+  <h2>Supporting collaborators outside this use case</h2>
+  <table>
+    <tr><th>Class</th><th>Role in UC-01</th></tr>
+    <tr><td>Permission «entity»</td><td>Defines the actions a role may perform after login</td></tr>
+    <tr><td>AuditLog «entity»</td><td>Stores successful and denied login attempts</td></tr>
+    <tr><td>Database</td><td>Stores users, roles, and audit entries</td></tr>
+  </table>
+</div>
+</body>
+</html>

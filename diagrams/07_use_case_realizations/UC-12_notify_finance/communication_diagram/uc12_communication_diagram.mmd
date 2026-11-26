@@ -1,0 +1,46 @@
+flowchart TB
+    PO(["Purchasing Officer<br/>«actor»"])
+    WH(["Warehouse Department<br/>«actor»"])
+    FIN(["Finance Department<br/>«actor»"])
+    PNW["PaymentNotificationWindow<br/>«view» (View Layer)"]
+    PH["PaymentHandler<br/>«controller» (Domain Layer)"]
+    GR["GoodsReceipt<br/>«entity» (Domain Layer)"]
+    INV["InvoiceDocument<br/>«entity» (Domain Layer)"]
+    PM["PaymentMatch<br/>«entity» (Domain Layer)"]
+    PN["PaymentNotification<br/>«entity» (Domain Layer)"]
+    PODA["PurchaseOrderDA<br/>«dataAccess» (Data Access Layer)"]
+    PNDA["PaymentNotificationDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    PO -- "1: openNotifyFinance(orderId)" --> PNW
+    PNW -- "2: getOrderDetails(orderId)" --> PH
+    PH -- "3: findOrderAndSupplier(orderId)" --> PODA
+    PODA -- "4: SELECT purchase order and supplier" --> DB
+    WH -- "5: confirmGoodsReceipt(quantities)" --> PNW
+    PNW -- "6: recordGoodsReceipt(quantities)" --> PH
+    PH -- "7: verifyReceipt(quantities)" --> GR
+    PO -- "8: attachInvoice(invoiceNumber, documents)" --> PNW
+    PNW -- "9: submitInvoice(invoiceDetails)" --> PH
+    PH -- "10: new InvoiceDocument(invoiceDetails)" --> INV
+    PH -- "11: checkDuplicateInvoice(supplier, number)" --> PNDA
+    PH -- "12: matchThreeWay(order, receipt, invoice)" --> PM
+    PO -- "13: submitPaymentNotification()" --> PNW
+    PNW -- "14: submitNotification(orderId)" --> PH
+    PH -- "15: new PaymentNotification(orderId, matchResult)" --> PN
+    PH -- "16: save(paymentNotification)" --> PNDA
+    PNDA -- "17: INSERT notification linked to order" --> DB
+    FIN -- "18: reviewPaymentPackage(decision)" --> PNW
+    PNW -- "19: recordFinanceDecision(decision)" --> PH
+    PH -- "20: updateStatus(decision)" --> PNDA
+    PH -- "21: placeOnHold(reason)" --> PN
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class PNW view
+    class PH ctrl
+    class GR,INV,PM,PN ent
+    class PODA,PNDA da
+    class DB db

@@ -1,0 +1,232 @@
+classDiagram
+direction LR
+
+class PurchaseRequestWindow {
+  <<view>>
+  +displayRequestForm() void
+  +submitRequest(PurchaseRequest request) void
+  +displayApprovalStatus() void
+}
+
+class ApprovalWindow {
+  <<view>>
+  +displayPendingRequests() void
+  +submitDecision(RequestApproval approval) void
+}
+
+class RFQWindow {
+  <<view>>
+  +displayRFQForm() void
+  +sendRFQ(RFQ rfq) void
+}
+
+class QuotationWindow {
+  <<view>>
+  +displayRFQResponses(RFQ rfq) void
+  +submitQuotation(Quotation quotation) void
+}
+
+class EvaluationWindow {
+  <<view>>
+  +displayQuotations(RFQ rfq) void
+  +submitAwardForApproval(QuotationEvaluation evaluation) void
+}
+
+class PurchaseRequestHandler {
+  <<controller>>
+  +createRequest(PurchaseRequest request) PurchaseRequest
+  +submitRequest(PurchaseRequest request) void
+  +checkApprovalStatus(int requestId) String
+  +recordApprovalDecision(RequestApproval approval) void
+  +recordBudgetDecision(BudgetCheck check) void
+}
+
+class SourcingHandler {
+  <<controller>>
+  +createRFQ(PurchaseRequest request) RFQ
+  +sendRFQ(RFQ rfq) void
+  +registerQuotation(Quotation quotation) void
+  +evaluateQuotations(RFQ rfq) QuotationEvaluation
+}
+
+class PurchaseRequestDA {
+  <<dataAccess>>
+  +findById(int requestId) PurchaseRequest
+  +save(PurchaseRequest request) void
+  +updateStatus(int requestId, String status) void
+}
+
+class RFQDA {
+  <<dataAccess>>
+  +findById(int rfqId) RFQ
+  +save(RFQ rfq) void
+}
+
+class QuotationDA {
+  <<dataAccess>>
+  +findById(int quotationId) Quotation
+  +save(Quotation quotation) void
+}
+
+class SupplyChainManager {
+  +reviewShortageReport(ShortageReport report) void
+  +createPurchaseRequest() PurchaseRequest
+  +submitPurchaseRequest(PurchaseRequest request) void
+}
+
+class PurchasingOfficer {
+  +createRFQ(PurchaseRequest request) RFQ
+  +selectEligibleSuppliers(RFQ rfq) Supplier[]
+  +dispatchRFQ(RFQ rfq, Supplier[] suppliers) void
+  +registerQuotation(Quotation quotation) void
+  +uploadQuotationDocument(Quotation quotation, QuotationDocument document) void
+  +createPurchaseOrder(Quotation quotation) PurchaseOrder
+  +dispatchPurchaseOrder(PurchaseOrder order) void
+  +recordSupplierConfirmation(PurchaseOrder order, DeliveryConfirmation confirmation) void
+  +submitPaymentNotification(PurchaseOrder order, InvoiceDocument invoice) PaymentNotification
+}
+
+class PurchaseRequest {
+  <<entity>>
+  -int requestId
+  -String requestReference
+  -Date requestDate
+  -String justification
+  -String priority
+  -Date requiredDate
+  -String status
+  -Decimal estimatedTotal
+  -String approvalStatus
+  +createRequest() void
+  +submitRequest() void
+  +addRequestItem(PurchaseRequestItem item) void
+  +validateRequest() Boolean
+  +generateReference() String
+  +checkRelatedRequests() Boolean
+  +isApprovedForSourcing() Boolean
+}
+
+class RequestApproval {
+  <<entity>>
+  -int approvalId
+  -String decision
+  -String rationale
+  -DateTime decidedAt
+  +recordDecision() void
+}
+
+class BudgetCheck {
+  <<entity>>
+  -int budgetCheckId
+  -Decimal requestedAmount
+  -Boolean available
+  -String decision
+  -DateTime checkedAt
+  +recordBudgetDecision() void
+}
+
+class ProcurementPolicy {
+  <<entity>>
+  -int policyId
+  -String version
+  -Date effectiveDate
+  -String configurationStatus
+  +getAuthorityLevel(Decimal amount) String
+  +getRequiredQuoteCount(Decimal amount) int
+}
+
+class RFQ {
+  <<entity>>
+  -int rfqId
+  -String rfqReference
+  -DateTime creationDate
+  -DateTime quotationDeadline
+  -String commercialRequirements
+  -String sourcingMethod
+  -int requiredQuoteCount
+  -String status
+  +createRFQ() void
+  +generateRFQDocument() void
+  +sendRFQ() void
+  +updateRFQStatus(String status) void
+  +validateRFQ() Boolean
+  +validateSourcingRules() Boolean
+}
+
+class Quotation {
+  <<entity>>
+  -int quotationId
+  -String quotationReference
+  -Date submissionDate
+  -Decimal totalPrice
+  -Date validityPeriod
+  -String deliveryTerms
+  -String commercialDetails
+  -String status
+  +registerQuotation() void
+  +validateQuotation() Boolean
+  +calculateTotalPrice() Decimal
+  +updateQuotation() void
+}
+
+class QuotationDocument {
+  <<entity>>
+  -int documentId
+  -String fileName
+  -String filePath
+  -Date uploadDate
+  +uploadDocument() void
+  +validateDocument() Boolean
+}
+
+class QuotationEvaluation {
+  <<entity>>
+  -int evaluationId
+  -Date evaluationDate
+  -Decimal technicalScore
+  -Decimal commercialScore
+  -String overallResult
+  -String selectionJustification
+  -String conflictDeclaration
+  -String awardRationale
+  -String awardStatus
+  -String status
+  +evaluateTechnicalCriteria() Decimal
+  +evaluateCommercialCriteria() Decimal
+  +compareQuotations() void
+  +selectSupplier() Supplier
+  +recordEvaluation() void
+  +declareConflict() void
+  +submitAwardForApproval() void
+}
+
+ApprovalWindow --> PurchaseRequestHandler : calls
+PurchaseRequestWindow --> PurchaseRequestHandler : calls
+RFQWindow --> SourcingHandler : calls
+QuotationWindow --> SourcingHandler : calls
+EvaluationWindow --> SourcingHandler : calls
+SupplyChainManager --> PurchaseRequestWindow : uses
+PurchasingOfficer --> RFQWindow : uses
+PurchasingOfficer --> QuotationWindow : uses
+SupplyChainManager --> PurchaseRequest : creates
+PurchaseRequest --> RequestApproval : requires
+PurchaseRequest --> BudgetCheck : checkedBeforeCommitment
+ProcurementPolicy --> RequestApproval : definesAuthority
+ProcurementPolicy --> RFQ : definesSourcingRules
+PurchaseRequest --> RFQ : generates
+PurchasingOfficer --> RFQ : creates
+RFQ --> Quotation : receives
+Quotation --> QuotationDocument : contains
+QuotationEvaluation --> Quotation : evaluates
+PurchaseRequestHandler --> PurchaseRequest : uses
+PurchaseRequestHandler --> RequestApproval : uses
+PurchaseRequestHandler --> BudgetCheck : uses
+SourcingHandler --> RFQ : uses
+SourcingHandler --> Quotation : uses
+SourcingHandler --> QuotationEvaluation : uses
+PurchaseRequestHandler --> PurchaseRequestDA : accesses
+SourcingHandler --> RFQDA : accesses
+SourcingHandler --> QuotationDA : accesses
+PurchaseRequestDA --> PurchaseRequest : maps
+RFQDA --> RFQ : maps
+QuotationDA --> Quotation : maps

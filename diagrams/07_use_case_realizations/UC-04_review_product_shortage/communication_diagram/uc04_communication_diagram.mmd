@@ -1,0 +1,34 @@
+flowchart TB
+    SCM(["Supply Chain Manager<br/>«actor»"])
+    WH(["Warehouse Department<br/>«actor»"])
+    SRW["ShortageReportWindow<br/>«view» (View Layer)"]
+    RH["ReviewHandler<br/>«controller» (Domain Layer)"]
+    INV["Inventory<br/>«entity» (Domain Layer)"]
+    SR["ShortageReport<br/>«entity» (Domain Layer)"]
+    PDA["ProductDA<br/>«dataAccess» (Data Access Layer)"]
+    IDA["InventoryDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    SCM -- "1: openReviewProductShortage()" --> SRW
+    SRW -- "2: loadShortageReport()" --> RH
+    RH -- "3: findProducts()" --> PDA
+    PDA -- "4: SELECT products with reorder levels" --> DB
+    RH -- "5: findStockByProduct()" --> IDA
+    IDA -- "6: SELECT on-hand, reserved, available" --> DB
+    RH -- "7: calculateAvailableStock()" --> INV
+    RH -- "8: calculateShortage(requiredQuantity)" --> SR
+    RH -- "9: generateShortageReport()" --> SR
+    SCM -- "10: reviewShortageReport()" --> SRW
+    SRW -- "11: reviewShortage(report)" --> RH
+    RH -- "12: reviewShortage()" --> SR
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class SRW view
+    class RH ctrl
+    class INV,SR ent
+    class PDA,IDA da
+    class DB db

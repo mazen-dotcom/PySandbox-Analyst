@@ -1,0 +1,56 @@
+sequenceDiagram
+    autonumber
+    actor PO as Purchasing Officer
+    box rgb(236,236,255) View Layer
+        participant QW as QuotationWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant SH as SourcingHandler «controller»
+        participant RFQ as RFQ «entity»
+        participant Q as Quotation «entity»
+        participant QD as QuotationDocument «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant RDA as RFQDA «dataAccess»
+        participant QDA as QuotationDA «dataAccess»
+    end
+    participant DB as Database
+
+    PO ->> QW: openQuotationRegistration()
+    QW ->> SH: loadIssuedRFQs()
+    SH ->> RDA: findIssuedRFQs()
+    RDA ->> DB: SELECT RFQs with response status
+    DB -->> RDA: RFQ rows
+    RDA -->> SH: issued RFQs and response statuses
+    SH -->> QW: display RFQs and response statuses
+    PO ->> QW: selectRFQAndSupplier(rfqReference, supplier)
+    QW ->> SH: openQuotationEntry(rfq, supplier)
+    SH ->> RFQ: validateRFQ()
+    alt RFQ not valid
+        SH -->> QW: quotation not linked to valid RFQ
+        QW -->> PO: prevent registration or flag for correction
+    else RFQ valid
+        SH ->> QDA: findQuotation(rfq, supplier)
+        QDA ->> DB: SELECT existing quotation for RFQ and supplier
+        DB -->> QDA: existing quotation or none
+        QDA -->> SH: existing quotation status
+        opt Quotation from same supplier already registered
+            SH -->> QW: check whether revision is permitted
+        end
+        PO ->> QW: enterQuotationDetails(prices, quantities, validity, deliveryTerms)
+        PO ->> QW: uploadQuotationDocument(file)
+        QW ->> SH: registerQuotation(details, documents)
+        SH ->> Q: validateQuotation()
+        alt Mandatory details missing
+            SH -->> QW: request completion
+            QW -->> PO: display missing fields
+        else Details valid
+            SH ->> Q: new Quotation(details)
+            SH ->> QD: uploadDocument(file)
+            SH ->> QDA: saveQuotation(quotation, documents)
+            QDA ->> DB: INSERT quotation linked to RFQ and supplier
+            SH ->> RFQ: updateRFQStatus(response received)
+            SH -->> QW: registration confirmed
+            QW -->> PO: display confirmation and updated response status
+        end
+    end

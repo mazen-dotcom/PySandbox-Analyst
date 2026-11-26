@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deployment Diagram - Procurement System</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 24px; background: #fff; }
+  h1 { font-size: 20px; }
+</style>
+</head>
+<body>
+<h1>Deployment Diagram - Procurement System</h1>
+<pre class="mermaid">
+flowchart TB
+    subgraph EXT["Internet / External Parties"]
+        SUP["Supplier Systems<br/>(supplier portal / email)"]
+        CARR["Carrier Tracking Service"]
+    end
+
+    subgraph CLIENT["Client Tier: User Workstations (Web Browser)"]
+        WS1["Procurement Staff PCs<br/>Product Data Specialist, Strategic Sourcing Specialist,<br/>Supply Chain Manager, Purchasing Officer"]
+        WS2["Operations PCs<br/>Logistics Coordinator, Warehouse Department"]
+        WS3["Finance PCs<br/>Finance Department"]
+        WS4["Approver Devices<br/>Authorized Approver (independent of requester)"]
+    end
+
+    subgraph DMZ["Perimeter Zone"]
+        FWE{{"External Firewall<br/>HTTPS only"}}
+    end
+
+    subgraph CORP["Corporate LAN (Procurement and Supply Chain)"]
+        FWI{{"Internal Firewall<br/>App to DB only"}}
+
+        subgraph APP["Application Server (Web/Application Server)"]
+            VIEW["View Layer<br/>Forms and reports (UC-01 to UC-15)"]
+            DOM["Domain Layer<br/>Business rules and entities<br/>(PurchaseRequest, RFQ, PurchaseOrder, ...)"]
+            DAL["Data Access Layer<br/>SQL queries (*DA classes)"]
+            VIEW --> DOM --> DAL
+        end
+
+        subgraph DBS["Database Server"]
+            DBMS[("DBMS Engine<br/>Procurement schema<br/>incl. AuditLog")]
+        end
+
+        DOCS[("Document Storage<br/>Quotations, contracts,<br/>invoices, SupplierDocument")]
+    end
+
+    WS1 -- "HTTPS" --> FWI
+    WS2 -- "HTTPS" --> FWI
+    WS3 -- "HTTPS" --> FWI
+    WS4 -- "HTTPS (VPN for remote)" --> FWE
+    FWE --> FWI
+    FWI -- "HTTPS" --> VIEW
+    DAL -- "SQL (internal network)" --> FWI
+    FWI -- "SQL" --> DBMS
+    DOM -- "file path" --> DOCS
+
+    APP -. "RFQ / PO dispatch, quotation receipt" .-> SUP
+    APP -. "shipment status query" .-> CARR
+
+    classDef client fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef server fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef db fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef fw fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef ext fill:#F2F2F2,stroke:#777777,color:#131300
+    class WS1,WS2,WS3,WS4 client
+    class VIEW,DOM,DAL server
+    class DBMS,DOCS db
+    class FWE,FWI fw
+    class SUP,CARR ext
+</pre>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>

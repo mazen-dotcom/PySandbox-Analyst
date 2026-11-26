@@ -1,0 +1,36 @@
+flowchart TB
+    PO(["Purchasing Officer<br/>«actor»"])
+    OCW["OrderConfirmationWindow<br/>«view» (View Layer)"]
+    OH["OrderHandler<br/>«controller» (Domain Layer)"]
+    POE["PurchaseOrder<br/>«entity» (Domain Layer)"]
+    DC["DeliveryConfirmation<br/>«entity» (Domain Layer)"]
+    PODA["PurchaseOrderDA<br/>«dataAccess» (Data Access Layer)"]
+    DCDA["DeliveryConfirmationDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    PO -- "1: openOrderConfirmation()" --> OCW
+    OCW -- "2: getOrdersAwaitingConfirmation()" --> OH
+    OH -- "3: findDispatchedOrders()" --> PODA
+    PODA -- "4: SELECT dispatched orders without confirmation" --> DB
+    PO -- "5: recordSupplierResponse(orderId, availability, date)" --> OCW
+    OCW -- "6: recordConfirmation(orderId, response)" --> OH
+    OH -- "7: new DeliveryConfirmation(orderId, response)" --> DC
+    OH -- "8: setAgreedDeliveryDate(date)" --> DC
+    OH -- "9: setConfirmationStatus(Confirmed)" --> POE
+    OH -- "10: save(deliveryConfirmation)" --> DCDA
+    DCDA -- "11: INSERT availability and confirmed date" --> DB
+    OH -- "12: recordShortfall(quantity)" --> DC
+    OH -- "13: save(deliveryConfirmation)" --> DCDA
+    OH -- "14: recordRevisedDate(date)" --> DC
+    OH -- "15: setConfirmationStatus(Awaiting Confirmation)" --> POE
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class OCW view
+    class OH ctrl
+    class POE,DC ent
+    class PODA,DCDA da
+    class DB db

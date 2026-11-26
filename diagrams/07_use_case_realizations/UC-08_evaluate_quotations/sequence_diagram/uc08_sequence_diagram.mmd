@@ -1,0 +1,65 @@
+sequenceDiagram
+    autonumber
+    actor SSS as Strategic Sourcing Specialist
+    actor MFG as Manufacturing Department
+    actor FIN as Finance Department
+    actor APR as Authorized Approver
+    box rgb(236,236,255) View Layer
+        participant EW as EvaluationWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant SH as SourcingHandler «controller»
+        participant PP as ProcurementPolicy «entity»
+        participant QE as QuotationEvaluation «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant QDA as QuotationDA «dataAccess»
+    end
+    participant DB as Database
+
+    SSS ->> EW: openEvaluateQuotations(rfq)
+    EW ->> SH: loadQuotations(rfq)
+    SH ->> QDA: findQuotationsByRFQ(rfq)
+    QDA ->> DB: SELECT quotations for RFQ
+    DB -->> QDA: quotation rows
+    QDA -->> SH: quotations
+    SH ->> PP: getApprovedCriteriaAndWeightings()
+    PP -->> SH: criteria and weightings
+    alt No quotations registered
+        SH -->> EW: evaluation cannot begin
+        EW -->> SSS: inform specialist
+    else Quotations available
+        opt Quotation incomplete or expired
+            SH -->> EW: flag quotation
+        end
+        MFG -->> SSS: technical suitability and quality compliance results
+        FIN -->> SSS: price results and budget availability confirmed
+        SSS ->> EW: enterScores(technicalScore, commercialScore)
+        SSS ->> EW: declareConflict(evaluator)
+        EW ->> SH: recordEvaluation(scores, conflictDeclaration)
+        SH ->> QE: recordEvaluation()
+        alt Conflict of interest declared
+            SH -->> EW: conflicted evaluator removed and reassigned
+        else No conflict
+            SH ->> QE: evaluateTechnicalCriteria()
+            SH ->> QE: evaluateCommercialCriteria()
+            SH ->> QE: compareQuotations()
+        end
+        SSS ->> EW: selectSupplier(quotation, justification)
+        EW ->> SH: selectSupplier(quotation, justification)
+        SH ->> QE: selectSupplier()
+        SH ->> QE: submitAwardForApproval()
+        alt Compliant offer selected
+            SH ->> PP: getAuthorityLevel(awardValue)
+            PP -->> SH: required approver level
+            APR ->> EW: approveAward(decision, rationale)
+            EW ->> SH: recordAwardDecision(decision)
+            SH ->> QE: recordEvaluation(awardStatus)
+            SH ->> QDA: saveEvaluation(evaluation)
+            QDA ->> DB: INSERT evaluation results and award status
+            SH -->> EW: outcome saved
+            EW -->> SSS: display award status
+        else Offer fails checks or award rejected
+            SH -->> EW: record issue and consider another offer or return to sourcing
+        end
+    end

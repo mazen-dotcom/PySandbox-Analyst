@@ -1,0 +1,50 @@
+sequenceDiagram
+    autonumber
+    actor PO as Purchasing Officer
+    actor WH as Warehouse Department
+    actor FIN as Finance Department
+    box rgb(236,236,255) View Layer
+        participant PNW as PaymentNotificationWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant PH as PaymentHandler «controller»
+        participant GR as GoodsReceipt «entity»
+        participant INV as InvoiceDocument «entity»
+        participant PM as PaymentMatch «entity»
+        participant PN as PaymentNotification «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant PODA as PurchaseOrderDA «dataAccess»
+        participant PNDA as PaymentNotificationDA «dataAccess»
+    end
+    participant DB as Database
+
+    PO ->> PNW: openNotifyFinance(orderId)
+    PNW ->> PH: getOrderDetails(orderId)
+    PH ->> PODA: findOrderAndSupplier(orderId)
+    PODA ->> DB: SELECT purchase order and supplier details
+    WH ->> PNW: confirmGoodsReceipt(receivedQuantities)
+    PNW ->> PH: recordGoodsReceipt(receivedQuantities)
+    PH ->> GR: verifyReceipt(receivedQuantities)
+    PO ->> PNW: attachInvoice(invoiceNumber, documents)
+    PNW ->> PH: submitInvoice(invoiceDetails)
+    PH ->> INV: new InvoiceDocument(invoiceDetails)
+    PH ->> PNDA: checkDuplicateInvoice(supplier, invoiceNumber)
+    PNDA ->> DB: SELECT invoices by supplier and number
+    PH ->> PM: matchThreeWay(order, receipt, invoice, tolerances)
+    PM -->> PH: match result
+    alt Three-way match passes
+        PO ->> PNW: submitPaymentNotification()
+        PNW ->> PH: submitNotification(orderId)
+        PH ->> PN: new PaymentNotification(orderId, matchResult)
+        PH ->> PNDA: save(paymentNotification)
+        PNDA ->> DB: INSERT notification linked to purchase order
+        FIN ->> PNW: reviewPaymentPackage(decision)
+        PNW ->> PH: recordFinanceDecision(decision)
+        PH ->> PNDA: updateStatus(decision)
+        PNW -->> PO: display notification status
+    else Invoice missing, variance, duplicate, open discrepancy or milestone not met
+        PH ->> PN: placeOnHold(reason)
+        PH -->> PNW: record variance and hold reason
+        PNW -->> PO: display hold reason
+    end

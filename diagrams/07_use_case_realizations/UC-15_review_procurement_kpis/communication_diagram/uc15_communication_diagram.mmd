@@ -1,0 +1,42 @@
+flowchart TB
+    APP(["Authorized Approver<br/>«actor»"])
+    KO(["KPI Owner<br/>«actor»"])
+    FIN(["Finance Department<br/>«actor»"])
+    KW["KPIWindow<br/>«view» (View Layer)"]
+    RH["ReviewHandler<br/>«controller» (Domain Layer)"]
+    PP["ProcurementPolicy<br/>«entity» (Domain Layer)"]
+    KR["KPIRecord<br/>«entity» (Domain Layer)"]
+    KPIDA["KPIRecordDA<br/>«dataAccess» (Data Access Layer)"]
+    DB[("Database")]
+
+    APP -- "1: openKPIReport(period)" --> KW
+    KW -- "2: getKPIReport(period)" --> RH
+    RH -- "3: getKPIDefinitions()" --> PP
+    RH -- "4: findKPIInputs(period)" --> KPIDA
+    KPIDA -- "5: SELECT orders, deliveries, savings, ratings" --> DB
+    RH -- "6: new KPIRecord(period, measuredValues)" --> KR
+    KR -- "7: calculateKPIs(approvedDefinitions)" --> KR
+    RH -- "8: compareWithTargets(targets)" --> KR
+    KO -- "9: provideVarianceExplanation(kpi, text)" --> KW
+    KW -- "10: recordExplanation(kpi, text)" --> RH
+    RH -- "11: addExplanation(kpi, text)" --> KR
+    FIN -- "12: reviewSavingsBaseline(baseline)" --> KW
+    KW -- "13: recordFinanceReview(baseline)" --> RH
+    APP -- "14: submitReviewDecision(decision)" --> KW
+    KW -- "15: recordReviewDecision(decision)" --> RH
+    RH -- "16: setReviewedStatus(decision, reviewer)" --> KR
+    RH -- "17: save(kpiRecords)" --> KPIDA
+    KPIDA -- "18: INSERT KPI records with review status" --> DB
+    RH -- "19: markExcluded(gap)" --> KR
+    RH -- "20: escalate()" --> KR
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300
+    classDef ctrl fill:#FFFFDE,stroke:#aaaa33,color:#131300
+    classDef ent fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    classDef da fill:#FDE9E7,stroke:#b33a2e,color:#131300
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    class KW view
+    class RH ctrl
+    class PP,KR ent
+    class KPIDA da
+    class DB db

@@ -1,0 +1,65 @@
+classDiagram
+direction LR
+
+class KPIWindow {
+  <<view>>
+  +displayKPIReport(String period) void
+  +submitKPIReview(KPIRecord kpi) void
+}
+
+class KPIHandler {
+  <<controller>>
+  +calculateKPIs(String period) KPIRecord[]
+  +reviewKPI(KPIRecord kpi) void
+  +recordAuditEntry(AuditLog log) void
+}
+
+class KPIRecordDA {
+  <<dataAccess>>
+  +findByPeriod(String period) KPIRecord[]
+  +save(KPIRecord kpi) void
+}
+
+class AuditLogDA {
+  <<dataAccess>>
+  +findByAction(String action) AuditLog[]
+  +save(AuditLog log) void
+}
+
+class KPIRecord {
+  <<entity>>
+  -int kpiRecordId
+  -String metricName
+  -Decimal measuredValue
+  -Decimal targetValue
+  -Date periodEnd
+  -String reviewStatus
+  +reviewKPI() void
+}
+
+class AuditLog {
+  <<entity>>
+  -int logId
+  -String action
+  -DateTime occurredAt
+  -String evidenceReference
+}
+
+class ProcurementPolicy {
+  <<entity>>
+  -int policyId
+  -String version
+  -Date effectiveDate
+  -String configurationStatus
+  +getAuthorityLevel(Decimal amount) String
+  +getRequiredQuoteCount(Decimal amount) int
+}
+
+KPIWindow --> KPIHandler : calls
+KPIHandler --> KPIRecord : uses
+KPIHandler --> AuditLog : uses
+KPIHandler --> ProcurementPolicy : reads definitions
+KPIHandler --> KPIRecordDA : accesses
+KPIHandler --> AuditLogDA : accesses
+KPIRecordDA --> KPIRecord : maps
+AuditLogDA --> AuditLog : maps

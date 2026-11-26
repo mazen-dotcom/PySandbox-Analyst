@@ -1,0 +1,58 @@
+sequenceDiagram
+    autonumber
+    actor PO as Purchasing Officer
+    actor FIN as Finance Department
+    actor APP as Authorized Approver
+    box rgb(236,236,255) View Layer
+        participant POW as PurchaseOrderWindow «view»
+    end
+    box rgb(255,255,222) Domain Layer
+        participant OH as OrderHandler «controller»
+        participant POE as PurchaseOrder «entity»
+        participant QU as Quotation «entity»
+        participant BC as BudgetCheck «entity»
+        participant PP as ProcurementPolicy «entity»
+        participant RA as RequestApproval «entity»
+    end
+    box rgb(253,233,231) Data Access Layer
+        participant QDA as QuotationDA «dataAccess»
+        participant PODA as PurchaseOrderDA «dataAccess»
+    end
+    participant DB as Database
+
+    PO ->> POW: selectCreatePurchaseOrder(quotationId)
+    POW ->> OH: getOrderContext(quotationId)
+    OH ->> QDA: findApprovedQuotation(quotationId)
+    QDA ->> DB: SELECT approved quotation, purchase request and contract
+    DB -->> QDA: quotation, request and contract rows
+    OH -->> POW: display supplier, quotation and contract details
+    FIN ->> BC: confirmBudget(orderValue)
+    BC -->> OH: budget and financial authorization status
+    PO ->> POW: enterDeliveryInstructions(instructions)
+    POW ->> OH: createPurchaseOrder(details)
+    OH ->> POE: new PurchaseOrder(details)
+    OH ->> QU: compareTerms(orderLines, deliveryTerms)
+    QU -->> OH: match result
+    OH ->> PP: getAuthorityLevel(orderValue)
+    PP -->> OH: required approver level
+    alt Terms mismatch, budget unavailable, or authority limit exceeded
+        OH -->> POW: block dispatch and record reason
+        POW -->> PO: display discrepancy
+    else Terms match and budget confirmed
+        OH ->> POE: setStatus(Pending Approval)
+        OH ->> PODA: save(purchaseOrder)
+        PODA ->> DB: INSERT purchase order with reference
+        OH ->> RA: new RequestApproval(orderId, approverLevel)
+        POW -->> PO: display reference and status Pending Approval
+        APP ->> POW: approveOrder(orderId, decision)
+        POW ->> OH: recordApproval(orderId, decision)
+        OH ->> RA: recordDecision(approver, timestamp)
+        PO ->> POW: dispatchPurchaseOrder(orderId)
+        POW ->> OH: dispatchOrder(orderId)
+        OH ->> POE: markDispatched(dispatchDate)
+        OH -->> POW: dispatch confirmed
+        POW -->> PO: display reference, dispatch date and status
+    else Dispatch fails
+        OH -->> POW: record failure
+        POW -->> PO: display retry option
+    end

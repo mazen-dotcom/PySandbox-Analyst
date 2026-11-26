@@ -1,0 +1,30 @@
+flowchart LR
+    USER(["Procurement Users<br/>and Approvers"])
+
+    VIEW["View layer<br/>Format screens and reports<br/>(login, forms, workflows)"]
+    DOMAIN["Domain layer<br/>Implement business rules<br/>(approvals, sourcing, matching)"]
+    DATA["Data layer<br/>Formulate queries<br/>(SQL data access)"]
+    DB[("Database<br/>Procurement records<br/>and audit log")]
+
+    USER -- "User request" --> VIEW
+    VIEW -- "Formatted response" --> USER
+
+    VIEW -- "Information request" --> DOMAIN
+    DOMAIN -- "Unformatted response" --> VIEW
+
+    DOMAIN -- "Data access request" --> DATA
+    DATA -- "Data access response" --> DOMAIN
+
+    DATA -- "SQL" --> DB
+    DB -- "Result set" --> DATA
+
+    classDef view fill:#ECECFF,stroke:#9370DB,color:#131300,stroke-width:2px
+    classDef domain fill:#FFFFDE,stroke:#aaaa33,color:#131300,stroke-width:2px
+    classDef data fill:#FDE9E7,stroke:#b33a2e,color:#131300,stroke-width:2px
+    classDef db fill:#F2F2F2,stroke:#777777,color:#131300
+    classDef user fill:#E8F4E8,stroke:#3a7d3a,color:#131300
+    class VIEW view
+    class DOMAIN domain
+    class DATA data
+    class DB db
+    class USER user

@@ -1,0 +1,136 @@
+classDiagram
+direction LR
+
+class PaymentNotificationWindow {
+  <<view>>
+  +displayInvoiceForm() void
+  +submitPaymentNotification(PaymentNotification notification) void
+  +displayPaymentStatus() void
+}
+
+class PaymentHandler {
+  <<controller>>
+  +submitPaymentNotification(PurchaseOrder order, InvoiceDocument invoice) PaymentNotification
+  +performThreeWayMatch(PaymentNotification notification) Boolean
+  +placeOnHold(PaymentNotification notification, String reason) void
+}
+
+class PaymentNotificationDA {
+  <<dataAccess>>
+  +findByOrder(int orderId) PaymentNotification[]
+  +save(PaymentNotification notification) void
+}
+
+class PurchasingOfficer {
+  +createRFQ(PurchaseRequest request) RFQ
+  +selectEligibleSuppliers(RFQ rfq) Supplier[]
+  +dispatchRFQ(RFQ rfq, Supplier[] suppliers) void
+  +registerQuotation(Quotation quotation) void
+  +uploadQuotationDocument(Quotation quotation, QuotationDocument document) void
+  +createPurchaseOrder(Quotation quotation) PurchaseOrder
+  +dispatchPurchaseOrder(PurchaseOrder order) void
+  +recordSupplierConfirmation(PurchaseOrder order, DeliveryConfirmation confirmation) void
+  +submitPaymentNotification(PurchaseOrder order, InvoiceDocument invoice) PaymentNotification
+}
+
+class PaymentNotification {
+  <<entity>>
+  -int notificationId
+  -Date notificationDate
+  -String invoiceNumber
+  -Decimal invoiceAmount
+  -String notificationStatus
+  -String paymentStatus
+  -String matchStatus
+  -String holdReason
+  +submitPaymentNotification() void
+  +attachInvoice() void
+  +updatePaymentStatus() void
+  +verifyPaymentDetails() Boolean
+  +performThreeWayMatch() Boolean
+  +placeOnHold(String reason) void
+  +releaseForPayment() void
+}
+
+class PaymentMatch {
+  <<entity>>
+  -int matchId
+  -String matchResult
+  -Decimal priceVariance
+  -int quantityVariance
+  -Boolean duplicateCheckPassed
+  -DateTime matchedAt
+  +calculateVariance() void
+}
+
+class InvoiceDocument {
+  <<entity>>
+  -int documentId
+  -String fileName
+  -String filePath
+  -Date uploadDate
+  -String documentType
+  -String invoiceNumber
+  -Decimal invoiceAmount
+  +uploadDocument() void
+  +validateDocument() Boolean
+  +checkDuplicate() Boolean
+}
+
+class PurchaseOrder {
+  <<entity>>
+  -int orderId
+  -String orderReference
+  -Date orderDate
+  -Date dispatchDate
+  -String deliveryInstructions
+  -String status
+  -Decimal totalAmount
+  -String approvalStatus
+  +createPurchaseOrder() void
+  +generateOrderDocument() void
+  +dispatchPurchaseOrder() void
+  +updateOrderStatus(String status) void
+  +validateOrder() Boolean
+  +validateAgainstContract() Boolean
+  +checkAuthorityLimit() Boolean
+}
+
+class GoodsReceipt {
+  <<entity>>
+  -int receiptId
+  -Date receiptDate
+  -int receivedQuantity
+  -int discrepancyQuantity
+  -String receiptStatus
+  -String inspectionResult
+  -String notes
+  +recordGoodsReceipt() void
+  +confirmReceivedQuantity() void
+  +recordDiscrepancy() void
+}
+
+class ProcurementPolicy {
+  <<entity>>
+  -int policyId
+  -String version
+  -Date effectiveDate
+  -String configurationStatus
+  +getAuthorityLevel(Decimal amount) String
+  +getRequiredQuoteCount(Decimal amount) int
+}
+
+PurchasingOfficer --> PaymentNotificationWindow : uses
+PurchasingOfficer --> PaymentNotification : submits
+PaymentNotificationWindow --> PaymentHandler : calls
+PaymentHandler --> PaymentNotification : uses
+PaymentHandler --> InvoiceDocument : uses
+PaymentHandler --> PurchaseOrder : uses
+PaymentHandler --> PaymentNotificationDA : accesses
+PaymentNotificationDA --> PaymentNotification : maps
+PaymentNotification --> InvoiceDocument : contains
+PaymentNotification --> PaymentMatch : evaluatedBy
+PurchaseOrder --> PaymentNotification : associated with
+GoodsReceipt --> PaymentNotification : supports verification
+GoodsReceipt --> PaymentMatch : receiptEvidence
+ProcurementPolicy --> PaymentMatch : definesTolerances
